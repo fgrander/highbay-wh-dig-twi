@@ -91,14 +91,14 @@ description: "Task list for the headless throughput simulation"
 
 > **NOTE: Write these tests FIRST, and ensure they FAIL before implementation**
 
-- [ ] T025 [P] [US2] Write tests in `tests/verification/test_hand_calculated.py` that check results within 0.1% (SC-003) and show the calculation in comments, for: **V1** as defined in `quickstart.md` Scenario 3; **V2**, the V1 warehouse with inbound and outbound points at both ends and the free cell at bay 2, level 2, giving 5 s movements, storage completion at 25 s, and retrieval completion at 55 s, both via the left end; **V3**, V1 with `warmup_s: 20`, giving a 3,580 s window, throughput of `2 × 3600 / 3580` per hour, moving loaded 7/3580, handling 27/3580, idle 3546/3580, and waiting statistics from the retrieval order only
-- [ ] T026 [P] [US2] Write tests in `tests/integration/test_traceability.py`: `result.json` and `report.md` contain the software version, seed, measurement window, and warehouse and scenario names and SHA-256 hashes; a hash matches an independent calculation from the input; `orders.csv` has correct `location`, `transfer_point`, `outcome`, and `reason` values, including each reason in `contracts/results.md`; and the report and `result.json` contain the modeling assumptions, which must fail until T028 is done
+- [X] T025 [P] [US2] Write tests in `tests/verification/test_hand_calculated.py` that check results within 0.1% (SC-003) and show the calculation in comments, for: **V1** as defined in `quickstart.md` Scenario 3; **V2**, the V1 warehouse with inbound and outbound points at both ends and the free cell at bay 2, level 2, giving 5 s movements, storage completion at 25 s, and retrieval completion at 55 s, both via the left end; **V3**, V1 with `warmup_s: 20`, giving a 3,580 s window, throughput of `2 × 3600 / 3580` per hour, moving loaded 7/3580, handling 27/3580, idle 3546/3580, and waiting statistics from the retrieval order only
+- [X] T026 [P] [US2] Write tests in `tests/integration/test_traceability.py`: `result.json` and `report.md` contain the software version, seed, measurement window, and warehouse and scenario names and SHA-256 hashes; a hash matches an independent calculation from the input; `orders.csv` has correct `location`, `transfer_point`, `outcome`, and `reason` values, including each reason in `contracts/results.md`; and the report and `result.json` contain the modeling assumptions, which must fail until T028 is done
 
 ### Implementation for User Story 2
 
-- [ ] T027 [P] [US2] Create the V1, V2, and V3 warehouse and scenario files in `samples/verification/`
-- [ ] T028 [US2] Add `report.md` section 7 and the `assumptions` list in `result.json` in `src/highbay_sim/outputs.py` (depends on T026), using the assumptions from `spec.md` and `research.md` (FR-016)
-- [ ] T029 [US2] Correct any difference that T025 reveals in `src/highbay_sim/engine.py` or `src/highbay_sim/metrics.py` by fixing the cause, not the expected values, unless the hand calculation itself is shown to be wrong and that correction is documented in the test
+- [X] T027 [P] [US2] Create the V1, V2, and V3 warehouse and scenario files in `samples/verification/`
+- [X] T028 [US2] Add `report.md` section 7 and the `assumptions` list in `result.json` in `src/highbay_sim/outputs.py` (depends on T026), using the assumptions from `spec.md` and `research.md` (FR-016)
+- [X] T029 [US2] Correct any difference that T025 reveals in `src/highbay_sim/engine.py` or `src/highbay_sim/metrics.py` by fixing the cause, not the expected values, unless the hand calculation itself is shown to be wrong and that correction is documented in the test
 
 **Checkpoint**: User Stories 1 and 2 both work. `quickstart.md` Scenario 3 succeeds.
 
@@ -114,12 +114,12 @@ description: "Task list for the headless throughput simulation"
 
 > **NOTE: Write these tests FIRST. Failures here show a gap in earlier stories that must be fixed at its cause.**
 
-- [ ] T030 [P] [US3] Write tests in `tests/integration/test_variants.py` using the files from T031: every variant runs with no software change (SC-005); all `result.json` files have the same metric names and units; generated order times, types, and articles in `orders.csv` are identical across variants with the same seed; in `samples/variants/spaced-orders.yaml`, an explicit scenario whose orders are far enough apart that cranes are always idle, every order has the same location in both speed variants and a shorter `completion_s - start_s` in the faster one; each aisle-count variant reports one crane per aisle; and transfer point variants use the configured points
+- [X] T030 [P] [US3] Write tests in `tests/integration/test_variants.py` using the files from T031: every variant runs with no software change (SC-005); all `result.json` files have the same metric names and units; generated order times, types, and articles in `orders.csv` are identical across variants with the same seed; in `samples/variants/spaced-orders.yaml`, an explicit scenario whose orders are far enough apart that cranes are always idle, every order has the same location in both speed variants and a shorter `completion_s - start_s` in the faster one; each aisle-count variant reports one crane per aisle; and transfer point variants use the configured points
 
 ### Implementation for User Story 3
 
-- [ ] T031 [P] [US3] Create `samples/variants/` with copies of `samples/small-warehouse.yaml` that each change one thing: higher crane speed, different `aisle_count`, different cell dimensions and counts, `random_free` storage rule, and transfer points at both aisle ends, and `samples/variants/spaced-orders.yaml` as the explicit scenario used by T030
-- [ ] T032 [US3] Create `README.md` with a section on comparing variants: which fields to change, keeping one scenario and seed, and which `result.json` fields to compare
+- [X] T031 [P] [US3] Create `samples/variants/` with copies of `samples/small-warehouse.yaml` that each change one thing: higher crane speed, different `aisle_count`, different cell dimensions and counts, `random_free` storage rule, and transfer points at both aisle ends, and `samples/variants/spaced-orders.yaml` as the explicit scenario used by T030
+- [X] T032 [US3] Create `README.md` with a section on comparing variants: which fields to change, keeping one scenario and seed, and which `result.json` fields to compare
 
 **Checkpoint**: All user stories are independently functional.
 
@@ -129,11 +129,11 @@ description: "Task list for the headless throughput simulation"
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T033 [P] Write `tests/performance/test_benchmark.py`, building a warehouse programmatically with 20 aisles and 100,000 cells, and asserting that 24 simulated hours at 1,000 orders per hour complete in under 60 seconds (SC-004)
+- [X] T033 [P] Write `tests/performance/test_benchmark.py`, building a warehouse programmatically with 20 aisles and 100,000 cells, and asserting that 24 simulated hours at 1,000 orders per hour complete in under 60 seconds (SC-004)
 - [x] T034 [P] Update FR-001 in `specs/001-headless-throughput-sim/spec.md` to state that cell length and height determine crane travel distances, and that cell width is validated and recorded but does not affect travel, as decided in `research.md`
-- [ ] T035 Extend `README.md` with installation via `uv sync`, usage of `validate` and `run`, input and output file references, and a statement that sample values are illustrative
-- [ ] T036 Run `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy src`, and `uv run pytest`, and fix every problem reported
-- [ ] T037 Run every scenario in `specs/001-headless-throughput-sim/quickstart.md` and record any difference from the expected results
+- [X] T035 Extend `README.md` with installation via `uv sync`, usage of `validate` and `run`, input and output file references, and a statement that sample values are illustrative
+- [X] T036 Run `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy src`, and `uv run pytest`, and fix every problem reported
+- [X] T037 Run every scenario in `specs/001-headless-throughput-sim/quickstart.md` and record any difference from the expected results
 
 ---
 

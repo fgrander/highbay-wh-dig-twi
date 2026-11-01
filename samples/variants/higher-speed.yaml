@@ -1,0 +1,184 @@
+# Variant of small-warehouse: speeds x 1.5 and accelerations x 2.25, which divides every travel time by 1.5.
+# All values are illustrative.
+schema_version: 1
+name: higher-speed
+layout:
+  aisle_count: 4
+  racks_per_aisle: 2
+  bays_per_rack: 40
+  levels_per_rack: 10
+  cell:
+    height_m: 1.5
+    length_m: 3.2
+    width_m: 1.5
+crane:
+  horizontal: { speed_m_s: 4.5, acceleration_m_s2: 1.125 }
+  vertical: { speed_m_s: 1.5, acceleration_m_s2: 1.125 }
+  pick_time_s: 12.0
+  set_time_s: 12.0
+transfer_points:
+  default:
+    left: [inbound]
+    right: [outbound]
+storage_rule: nearest_free
+initial_stock:
+  - { location: { aisle: 1, rack: 1, bay: 1, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 1, rack: 1, bay: 2, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 1, rack: 1, bay: 3, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 1, rack: 1, bay: 4, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 1, bay: 5, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 1, bay: 6, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 1, bay: 7, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 1, bay: 8, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 1, bay: 9, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 1, rack: 1, bay: 10, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 1, rack: 1, bay: 11, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 1, rack: 1, bay: 12, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 1, bay: 13, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 1, bay: 14, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 1, bay: 15, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 1, bay: 16, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 1, bay: 17, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 1, rack: 1, bay: 18, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 1, rack: 1, bay: 19, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 1, rack: 1, bay: 20, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 2, bay: 1, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 2, bay: 2, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 2, bay: 3, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 2, bay: 4, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 2, bay: 5, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 1, rack: 2, bay: 6, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 1, rack: 2, bay: 7, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 1, rack: 2, bay: 8, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 2, bay: 9, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 2, bay: 10, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 2, bay: 11, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 2, bay: 12, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 2, bay: 13, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 1, rack: 2, bay: 14, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 1, rack: 2, bay: 15, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 1, rack: 2, bay: 16, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 2, bay: 17, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 2, bay: 18, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 2, bay: 19, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 1, rack: 2, bay: 20, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 1, bay: 1, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 2, rack: 1, bay: 2, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 2, rack: 1, bay: 3, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 2, rack: 1, bay: 4, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 1, bay: 5, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 1, bay: 6, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 1, bay: 7, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 1, bay: 8, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 1, bay: 9, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 2, rack: 1, bay: 10, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 2, rack: 1, bay: 11, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 2, rack: 1, bay: 12, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 1, bay: 13, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 1, bay: 14, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 1, bay: 15, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 1, bay: 16, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 1, bay: 17, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 2, rack: 1, bay: 18, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 2, rack: 1, bay: 19, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 2, rack: 1, bay: 20, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 2, bay: 1, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 2, bay: 2, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 2, bay: 3, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 2, bay: 4, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 2, bay: 5, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 2, rack: 2, bay: 6, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 2, rack: 2, bay: 7, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 2, rack: 2, bay: 8, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 2, bay: 9, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 2, bay: 10, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 2, bay: 11, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 2, bay: 12, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 2, bay: 13, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 2, rack: 2, bay: 14, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 2, rack: 2, bay: 15, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 2, rack: 2, bay: 16, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 2, bay: 17, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 2, bay: 18, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 2, bay: 19, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 2, rack: 2, bay: 20, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 1, bay: 1, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 3, rack: 1, bay: 2, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 3, rack: 1, bay: 3, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 3, rack: 1, bay: 4, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 1, bay: 5, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 1, bay: 6, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 1, bay: 7, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 1, bay: 8, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 1, bay: 9, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 3, rack: 1, bay: 10, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 3, rack: 1, bay: 11, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 3, rack: 1, bay: 12, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 1, bay: 13, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 1, bay: 14, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 1, bay: 15, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 1, bay: 16, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 1, bay: 17, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 3, rack: 1, bay: 18, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 3, rack: 1, bay: 19, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 3, rack: 1, bay: 20, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 2, bay: 1, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 2, bay: 2, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 2, bay: 3, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 2, bay: 4, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 2, bay: 5, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 3, rack: 2, bay: 6, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 3, rack: 2, bay: 7, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 3, rack: 2, bay: 8, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 2, bay: 9, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 2, bay: 10, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 2, bay: 11, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 2, bay: 12, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 2, bay: 13, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 3, rack: 2, bay: 14, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 3, rack: 2, bay: 15, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 3, rack: 2, bay: 16, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 2, bay: 17, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 2, bay: 18, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 2, bay: 19, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 3, rack: 2, bay: 20, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 1, bay: 1, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 4, rack: 1, bay: 2, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 4, rack: 1, bay: 3, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 4, rack: 1, bay: 4, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 1, bay: 5, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 1, bay: 6, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 1, bay: 7, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 1, bay: 8, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 1, bay: 9, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 4, rack: 1, bay: 10, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 4, rack: 1, bay: 11, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 4, rack: 1, bay: 12, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 1, bay: 13, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 1, bay: 14, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 1, bay: 15, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 1, bay: 16, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 1, bay: 17, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 4, rack: 1, bay: 18, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 4, rack: 1, bay: 19, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 4, rack: 1, bay: 20, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 2, bay: 1, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 2, bay: 2, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 2, bay: 3, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 2, bay: 4, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 2, bay: 5, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 4, rack: 2, bay: 6, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 4, rack: 2, bay: 7, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 4, rack: 2, bay: 8, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 2, bay: 9, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 2, bay: 10, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 2, bay: 11, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 2, bay: 12, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 2, bay: 13, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 4, rack: 2, bay: 14, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 4, rack: 2, bay: 15, level: 1 }, article: paper-a4-80g }
+  - { location: { aisle: 4, rack: 2, bay: 16, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 2, bay: 17, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 2, bay: 18, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 2, bay: 19, level: 1 }, article: oak-panel-18mm }
+  - { location: { aisle: 4, rack: 2, bay: 20, level: 1 }, article: oak-panel-18mm }

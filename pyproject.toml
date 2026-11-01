@@ -2,6 +2,7 @@
 name = "highbay-sim"
 version = "0.1.0"
 description = "Headless throughput simulation of a high-bay warehouse"
+readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.9",
@@ -35,6 +36,7 @@ markers = ["performance: measures SC-004 timing"]
 [tool.ruff]
 line-length = 100
 src = ["src", "tests"]
+extend-exclude = [".specify", "specs"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]

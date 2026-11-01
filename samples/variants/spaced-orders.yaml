@@ -1,0 +1,16 @@
+# Orders 300 s apart, so cranes are always idle when an order arrives and cell
+# assignments do not depend on crane speed. Used to compare speed variants.
+schema_version: 1
+name: spaced-orders
+seed: 1
+duration_s: 3600
+warmup_s: 0
+orders:
+  - { time_s: 0, type: storage, article: oak-panel-18mm }
+  - { time_s: 300, type: retrieval, article: paper-a4-80g }
+  - { time_s: 600, type: storage, article: paper-a4-80g }
+  - { time_s: 900, type: retrieval, article: oak-panel-18mm }
+  - { time_s: 1200, type: retrieval, article: oak-panel-18mm }
+  - { time_s: 1500, type: storage, article: oak-panel-18mm }
+  - { time_s: 1800, type: retrieval, article: paper-a4-80g }
+  - { time_s: 2100, type: storage, article: oak-panel-18mm }

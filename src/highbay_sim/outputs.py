@@ -32,6 +32,33 @@ ORDER_COLUMNS = (
     "reason",
 )
 NOT_AVAILABLE = "not available"
+ASSUMPTIONS = (
+    "Each aisle has one crane, which handles one load unit at a time and completes one order per "
+    "cycle. Dual-command cycles, multi-load handling, and cranes changing aisles are not modeled.",
+    "A crane movement uses a symmetric trapezoidal velocity profile on each axis, starting and "
+    "ending at rest, and takes as long as the slower axis. Jerk limits are not modeled.",
+    "Crane speed and acceleration do not depend on the weight of the load unit.",
+    "A cell's horizontal position is the center of its bay and its vertical position is the "
+    "floor of its level. Beam thickness and clearances are not modeled.",
+    "Cell width does not affect travel, because cranes do not change aisles and fork movement is "
+    "part of the handling time.",
+    "All cells have the same dimensions, every load unit fits every cell, and each cell holds one "
+    "load unit. Load unit dimensions are not checked, and double-deep storage is not modeled.",
+    "All transfer points are at ground level. Load units are always available at inbound points "
+    "and removed immediately from outbound points, so transfer points never block a crane. An "
+    "order is not tied to a specific transfer point, and conveyors are not modeled.",
+    "A crane starts at the first inbound point of its aisle, left before right, and otherwise "
+    "waits where it finished its last order.",
+    "An order receives its cell when it arrives and is then served first-come, first-served by "
+    "that aisle's crane. Storage location rules do not consider how busy each crane is, so "
+    "individual aisles can be overloaded while others are free.",
+    "Retrievals take the oldest stored load unit of the article. A retrieval with no stored, "
+    "unreserved load unit at arrival is unfulfillable and does not wait for incoming stock.",
+    "Generated orders arrive as a Poisson process at a constant rate, with no time-of-day profile.",
+    "Metrics are calculated for the measurement window after the warm-up, except order outcomes, "
+    "which cover the whole run.",
+    "Equipment failures, maintenance, staffing, and energy use are not modeled.",
+)
 
 
 @dataclass(frozen=True)
@@ -130,6 +157,7 @@ def result_document(info: RunInfo, metrics: Metrics) -> dict[str, Any]:
             },
         },
         "definitions": DEFINITIONS,
+        "assumptions": list(ASSUMPTIONS),
     }
 
 
@@ -217,6 +245,8 @@ def report_text(info: RunInfo, result: dict[str, Any]) -> str:
         f"| `{name}` | {entry['unit']} | {entry['definition']} |"
         for name, entry in result["definitions"].items()
     ]
+    lines += ["", "## Modeling assumptions and simplifications", ""]
+    lines += [f"- {assumption}" for assumption in result["assumptions"]]
     return "\n".join(lines) + "\n"
 
 
