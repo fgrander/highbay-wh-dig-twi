@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Simulation output
+out/
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Environment and editor files
+.env*
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
