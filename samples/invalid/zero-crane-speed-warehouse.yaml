@@ -1,0 +1,28 @@
+schema_version: 1
+name: invalid-sample
+layout:
+  aisle_count: 2
+  racks_per_aisle: 2
+  bays_per_rack: 5
+  levels_per_rack: 2
+  cell:
+    height_m: 1.5
+    length_m: 3.2
+    width_m: 1.5
+crane:
+  horizontal:
+    speed_m_s: 3.0
+    acceleration_m_s2: 0.5
+  vertical:
+    speed_m_s: 0
+    acceleration_m_s2: 0.5
+  pick_time_s: 12.0
+  set_time_s: 12.0
+transfer_points:
+  default:
+    left:
+    - inbound
+    right:
+    - outbound
+storage_rule: nearest_free
+initial_stock: []

@@ -1,0 +1,32 @@
+# V1 with transfer points at both ends and the free cell at bay 2, level 2.
+schema_version: 1
+name: verification-v2
+layout:
+  aisle_count: 1
+  racks_per_aisle: 1
+  bays_per_rack: 5
+  levels_per_rack: 2
+  cell:
+    height_m: 3.0
+    length_m: 4.0
+    width_m: 1.5
+crane:
+  horizontal: { speed_m_s: 2.0, acceleration_m_s2: 1.0 }
+  vertical: { speed_m_s: 1.0, acceleration_m_s2: 1.0 }
+  pick_time_s: 10.0
+  set_time_s: 10.0
+transfer_points:
+  default:
+    left: [inbound, outbound]
+    right: [inbound, outbound]
+storage_rule: nearest_free
+initial_stock:
+  - { location: { aisle: 1, rack: 1, bay: 1, level: 1 }, article: B }
+  - { location: { aisle: 1, rack: 1, bay: 1, level: 2 }, article: B }
+  - { location: { aisle: 1, rack: 1, bay: 2, level: 1 }, article: B }
+  - { location: { aisle: 1, rack: 1, bay: 3, level: 1 }, article: B }
+  - { location: { aisle: 1, rack: 1, bay: 3, level: 2 }, article: B }
+  - { location: { aisle: 1, rack: 1, bay: 4, level: 1 }, article: B }
+  - { location: { aisle: 1, rack: 1, bay: 4, level: 2 }, article: B }
+  - { location: { aisle: 1, rack: 1, bay: 5, level: 1 }, article: B }
+  - { location: { aisle: 1, rack: 1, bay: 5, level: 2 }, article: B }

@@ -1,0 +1,49 @@
+# The field paths each invalid sample must report.
+- file: no-outbound-warehouse.yaml
+  kind: warehouse
+  paths:
+  - transfer_points.default
+- file: no-inbound-warehouse.yaml
+  kind: warehouse
+  paths:
+  - transfer_points.aisles.2
+- file: zero-aisles-warehouse.yaml
+  kind: warehouse
+  paths:
+  - layout.aisle_count
+- file: negative-cell-dimension-warehouse.yaml
+  kind: warehouse
+  paths:
+  - layout.cell.length_m
+- file: zero-crane-speed-warehouse.yaml
+  kind: warehouse
+  paths:
+  - crane.vertical.speed_m_s
+- file: duplicate-stock-warehouse.yaml
+  kind: warehouse
+  paths:
+  - initial_stock.1.location
+- file: missing-location-warehouse.yaml
+  kind: warehouse
+  paths:
+  - initial_stock.0.location
+- file: unknown-aisle-override-warehouse.yaml
+  kind: warehouse
+  paths:
+  - transfer_points.aisles.9
+- file: unknown-field-warehouse.yaml
+  kind: warehouse
+  paths:
+  - layout.depth_m
+- file: several-errors-warehouse.yaml
+  kind: warehouse
+  paths:
+  - layout.bays_per_rack
+  - crane.pick_time_s
+  - storage_rule
+  - transfer_points.default
+  - initial_stock.1.location
+- file: warmup-too-long-scenario.yaml
+  kind: scenario
+  paths:
+  - warmup_s

@@ -1,0 +1,12 @@
+# Sample scenario: one simulated day of generated orders. Values are illustrative.
+schema_version: 1
+name: daily-scenario
+seed: 42
+duration_s: 86400
+warmup_s: 3600
+generated:
+  orders_per_hour: 60
+  storage_share: 0.5
+  article_weights:
+    oak-panel-18mm: 3
+    paper-a4-80g: 1

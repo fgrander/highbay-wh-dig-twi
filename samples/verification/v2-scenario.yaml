@@ -1,0 +1,9 @@
+# Store at 0 s, retrieve at 30 s, no warm-up.
+schema_version: 1
+name: verification-v2
+seed: 1
+duration_s: 3600
+warmup_s: 0
+orders:
+  - { time_s: 0, type: storage, article: A }
+  - { time_s: 30, type: retrieval, article: A }
