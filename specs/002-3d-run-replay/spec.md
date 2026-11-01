@@ -103,13 +103,13 @@ A planner watches for problems: which cranes are busy or idle, where orders are 
 **Navigation and inspection**
 
 - **FR-014**: Users MUST be able to rotate, move, and zoom the view, and return to a default view showing the whole warehouse.
-- **FR-015**: Users MUST be able to select a crane, cell, or load unit, and see the details in User Story 2 for the current simulated time.
+- **FR-015**: Users MUST be able to select a crane, cell, or load unit, and see the details in User Story 2 for the current simulated time. Selecting an occupied cell selects its load unit and also shows the cell's details, and a load unit on a crane can be selected through that crane's details.
 - **FR-016**: Load units of different articles MUST be visually distinguishable, and the viewer MUST show which appearance belongs to which article.
 
 **Analysis**
 
 - **FR-017**: Each crane's appearance MUST show its current activity: moving empty, moving loaded, handling, or idle.
-- **FR-018**: The viewer MUST show at all times the simulated time, whether it is in the warm-up or the measurement window, total backlog, backlog per aisle, occupancy, and orders completed so far.
+- **FR-018**: The viewer MUST show at all times the simulated time, whether it is in the warm-up or the measurement window, total backlog, backlog per aisle, orders waiting for a free cell, occupancy, orders completed so far, and the run's identification.
 - **FR-019**: At the end of a run, the viewer's order counts, backlog, and occupancy MUST match the run's reported values for the same scope.
 - **FR-020**: Users MUST be able to jump to the first moment in the measurement window at which the backlog reaches its reported maximum.
 
@@ -125,7 +125,7 @@ A planner watches for problems: which cranes are busy or idle, where orders are 
 ### Measurable Outcomes
 
 - **SC-001**: A planner can go from a completed sample run to a playing 3D replay in under 1 minute, using only the project's documentation.
-- **SC-002**: At the warehouse size in the simulation's planning target (20 aisles, 100,000 cells, 24 simulated hours at 1,000 orders per hour), playback and camera movement stay smooth, at 30 frames per second or more, on a typical desktop computer with 3D-capable graphics.
+- **SC-002**: At the warehouse size in the simulation's planning target (20 aisles, 100,000 cells, 24 simulated hours at 1,000 orders per hour), playback and camera movement stay smooth, at 30 frames per second or more. The reference is the project owner's development computer, and each measurement records its graphics hardware.
 - **SC-003**: At the same size, moving to any simulated time shows the correct state in under 1 second.
 - **SC-004**: In verification scenarios with hand-calculated results, crane positions at chosen times deviate by no more than 1 cm from the calculated values.
 - **SC-005**: In 100% of tested times, moving directly to a time and reaching it through playback give the same crane positions, stored load units, and on-screen counts.

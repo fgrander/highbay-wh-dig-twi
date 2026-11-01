@@ -98,4 +98,4 @@ uv run pytest tests/performance
 uv run highbay-sim view out/target --no-browser
 ```
 
-Open the printed address with `?benchmark=1` in a normal browser window. **Expected**: The displayed average is at least 30 frames per second on a typical desktop computer with 3D-capable graphics. Record the result and graphics hardware in the pull request or commit.
+Open the printed address with `?benchmark=1` in a normal browser window. **Expected**: The displayed average is at least 30 frames per second on the project owner's development computer. Record the result and graphics hardware in the pull request or commit.

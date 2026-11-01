@@ -18,7 +18,7 @@ Add an optional replay file to simulation runs, and a browser-based 3D viewer th
 
 **Testing**: pytest for Python. pytest with Playwright and headless Chromium for viewer logic and behavior, as a development dependency only. Documented manual steps for what automated tests cannot measure, such as frame rate on real graphics hardware.
 
-**Target Platform**: Windows 11 with a current Chromium-based browser or Firefox, both with WebGL 2
+**Target Platform**: Windows 11 with a current Chromium-based browser and WebGL 2, which automated tests cover. Firefox is expected to work but is not verified in this feature.
 
 **Project Type**: Existing library and command-line interface, extended with a local web viewer
 

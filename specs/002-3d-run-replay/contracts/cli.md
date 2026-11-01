@@ -9,6 +9,8 @@ With `--replay`, the run also writes `replay.json` to the output directory, as d
 - Without `--replay`, no replay file is written.
 - `report.md`, `result.json`, and `orders.csv` are byte-identical with and without `--replay`.
 - An existing `replay.json` counts as an existing output file, so it needs `--overwrite` to be replaced when `--replay` is given.
+- With `--overwrite` but without `--replay`, an existing `replay.json` is deleted, so that it can never be viewed as if it belonged to the new results.
+- Without `--overwrite` and without `--replay`, an existing `replay.json` counts as an existing output file too, so the run fails as for other existing outputs.
 
 ## `highbay-sim view PATH [--port PORT] [--no-browser]`
 

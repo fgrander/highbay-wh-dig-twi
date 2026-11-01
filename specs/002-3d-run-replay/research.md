@@ -16,8 +16,8 @@ The project owner decided that the viewer runs in a web browser and uses simple 
 
 ## Replay file
 
-- **Decision**: One uncompressed `replay.json` with compact rows, written only when `--replay` is given. It contains no timestamps or machine details, and times are rounded to 3 decimal places (1 ms).
-- **Rationale**: At the planning target of about 165,000 events and at most 100,000 stock rows, the estimated size is about 15 MB, well below the 100 MB limit, so compression is not needed. At the sample crane speeds, 1 ms is at most a few millimetres of travel, within SC-004. The file is easy to inspect and compare.
+- **Decision**: One uncompressed `replay.json` with compact rows, written only when `--replay` is given. It contains no timestamps or machine details, and times are not rounded.
+- **Rationale**: At the planning target of about 165,000 events and at most 100,000 stock rows, the estimated size is about 25 MB, well below the 100 MB limit, so compression is not needed. Rounding would merge events less than a time step apart, so the viewer could show a state that never occurred, such as a backlog that does not reach the reported maximum (FR-020, SC-006). Python writes each time as the shortest decimal that reads back as the same value, and browsers read it as the same value, so the file stays byte-identical for identical inputs. The file is easy to inspect and compare.
 - **Alternatives considered**: Compression and binary formats save space that is not needed, and make reproducibility and debugging harder.
 
 ## Building replay data from events
@@ -51,7 +51,7 @@ The project owner decided that the viewer runs in a web browser and uses simple 
 ## Selecting objects
 
 - **Decision**: Calculate the selected cell from the selection ray and rack geometry, rather than testing every instance. Cranes use standard ray tests against their few objects.
-- **Rationale**: Empty cells must also be selectable (FR-015), and have no drawn object. Calculating from geometry costs the same at any warehouse size.
+- **Rationale**: Empty cells must also be selectable (FR-015), and have no drawn object. Calculating from geometry costs the same at any warehouse size. A hit on an occupied cell selects its load unit, whose details include the cell's, and a hit on a crane carrying a load unit selects the crane, whose details include the load unit, which can then be selected from those details.
 
 ## Aisle spacing
 

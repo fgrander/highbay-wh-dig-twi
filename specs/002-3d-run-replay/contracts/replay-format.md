@@ -1,6 +1,6 @@
 # Contract: Replay File
 
-`replay.json` is compact UTF-8 JSON with Unix line endings. It contains no timestamps of when it was written and no machine details, so identical inputs and software versions give byte-identical files. Times are in seconds with 3 decimal places. Positions are `[horizontal_m, vertical_m]`.
+`replay.json` is compact UTF-8 JSON with Unix line endings. It contains no timestamps of when it was written and no machine details, so identical inputs and software versions give byte-identical files. Times are in seconds and are not rounded: each is the shortest decimal that reads back as the same value, so the order of closely spaced events is never lost. Positions are `[horizontal_m, vertical_m]`.
 
 ```json
 {

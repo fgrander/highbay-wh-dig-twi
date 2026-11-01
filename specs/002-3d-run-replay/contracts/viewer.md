@@ -32,11 +32,11 @@ Logic modules do not use the document or three.js, so they can be tested directl
 | Default view | Returns the camera to show the whole warehouse |
 | Go to highest backlog | Moves to `reported.first_backlog_peak_s` and pauses |
 | Drag, right-drag, and scroll in the view | Rotate, move, and zoom |
-| Click in the view | Selects a crane, load unit, or cell, or clears the selection |
+| Click in the view | A crane selects the crane, and its details offer any carried load unit for selection. An occupied cell selects its load unit, with the cell's details also shown. An empty cell selects the cell. Anywhere else clears the selection. |
 
 ## Displayed information
 
-- **Figures, always visible**: simulated time, warm-up or measurement window, total backlog, backlog per aisle, orders waiting for a cell, occupancy, orders completed, and the run's identification.
+- **Figures, always visible**: simulated time, warm-up or measurement window, total backlog, backlog per aisle, orders waiting for a cell, occupancy, orders completed, and the run's identification. Occupancy is shown with 6 decimal places, the same format as `report.md`.
 - **Selection details**: as in the spec's User Story 2. Load units from initial stock show "initial stock" in place of an order.
 - **Legend**: a color for each article, and the crane colors for each activity.
 
