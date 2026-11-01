@@ -37,11 +37,11 @@ Build a command-line discrete-event simulation of one high-bay warehouse. The wa
 | I. Simulation core independent of visualization | The engine has no user interface dependency; consumers read a typed event stream ([simulation-api.md](contracts/simulation-api.md)) | PASS | PASS |
 | II. Reproducible simulation | Event-driven simulated time, deterministic tie-breaking, seeded and separated random streams, no timestamps in outputs | PASS | PASS |
 | III. Credible throughput results | Metrics have written definitions, results record input hashes and assumptions, and hand-calculated scenarios verify results ([results.md](contracts/results.md), [quickstart.md](quickstart.md)) | PASS | PASS |
-| IV. Live data as a later, pluggable option | Orders enter through an `OrderSource` interface; no live source is built and nothing writes to external systems | PASS | PASS |
+| IV. Live data as a later, pluggable option | Orders enter through `OrderSource` and warehouse data including initial stock through `WarehouseDefinition`; no live source is built and nothing writes to external systems | PASS | PASS |
 | V. Test-first simulation logic | Tasks must write failing tests first for kinematics, allocation, engine, and metrics | PASS | PASS |
 | VI. Incremental delivery and simplicity | Single package, two runtime dependencies, small custom event loop; the interfaces added are those exempted by Principles I and IV | PASS | PASS |
 | Technical constraints | Inputs are versionable YAML, SC-004 states measurable targets, stack is chosen here, and no external credentials exist | PASS | PASS |
-| Development workflow | Spec Kit sequence followed on a feature branch; result-changing commits must be marked after the first release of results | PASS | PASS |
+| Development workflow | Spec Kit sequence followed on a feature branch; commits that change simulation results are marked as such | PASS | PASS |
 
 No violations. No deviations need to be justified.
 

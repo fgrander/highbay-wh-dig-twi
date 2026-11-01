@@ -23,6 +23,7 @@ def calculate_metrics(record: RunRecord, warmup_s: float) -> Metrics:
 ## Rules
 
 - `simulate` performs no file, network, or display access, and does not read the system clock.
+- `WarehouseDefinition`, including its initial stock, is the input boundary for all warehouse data, and `OrderSource` is the boundary for orders. File loading in `config.py` only builds these objects. A later live source can supply either one without changing the engine.
 - `GeneratedOrders` and `ExplicitOrders` are the only `OrderSource` implementations in this feature. A live source can later implement the same interface.
 - `on_event` is called in event order. It can only observe: events are immutable, and consumers cannot change simulation state. The later 3D view can use this stream, or a saved copy of it.
 - Results do not depend on whether `on_event` is provided.

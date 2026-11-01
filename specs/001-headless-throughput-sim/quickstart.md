@@ -66,7 +66,7 @@ uv run highbay-sim validate samples/invalid/<case>-warehouse.yaml samples/daily-
 
 Run the same scenario against copies of the sample warehouse with one change each: a higher crane speed, a different `aisle_count`, a different cell size, and additional transfer points.
 
-**Expected**: Every run succeeds with no software change. `result.json` has the same metric names and units in all runs. The higher-speed variant shows no increase in any order's crane travel time under the same assignments.
+**Expected**: Every run succeeds with no software change. `result.json` has the same metric names and units in all runs. With the explicit scenario `samples/variants/spaced-orders.yaml`, whose orders are far enough apart that cranes are always idle, every order has the same location in both speed variants and a shorter `completion_s - start_s` in the faster one.
 
 ## Scenario 6: Edge cases (spec Edge Cases)
 

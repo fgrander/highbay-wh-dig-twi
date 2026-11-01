@@ -35,7 +35,7 @@ The project owner requires the simulation to run entirely in Python. The other d
 ## Geometry
 
 - **Decision**: Horizontal position is the center of the cell's bay, `(bay - 0.5) × cell length`. Vertical position is the floor of the cell's level, `(level - 1) × cell height`. Aisle ends are at `0` (left) and `bays × cell length` (right), at height `0`.
-- **Consequence**: Cell width does not affect travel, because cranes do not change aisles and fork movement is part of the handling time. It is validated and recorded for later use, such as the 3D view. This narrows the wording of FR-001, which says that cell dimensions determine travel distances.
+- **Consequence**: Cell width does not affect travel, because cranes do not change aisles and fork movement is part of the handling time. It is validated and recorded for later use, such as the 3D view.
 - **Alternatives considered**: Adding beam thickness and clearances needs data that is not yet available.
 
 ## Order handling

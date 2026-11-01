@@ -1,6 +1,6 @@
 # Contract: Output Files
 
-A run writes three files to the output directory. They contain no timestamps or machine details, so identical inputs and software versions produce byte-identical files. Times are in seconds with 3 decimal places, unless stated otherwise.
+A run writes three files to the output directory. They contain no timestamps or machine details, so identical inputs and software versions produce byte-identical files. Times are in seconds with 3 decimal places. Shares, occupancy, and throughput have 6 decimal places.
 
 ## `result.json`
 
@@ -60,7 +60,7 @@ order_id,type,article,arrival_s,start_s,completion_s,crane,location,transfer_poi
 ```
 
 - `location` is written as `aisle-rack-bay-level`, and `transfer_point` as `left` or `right`.
-- `outcome` is `completed`, `unfinished`, or `unfulfillable`. `reason` is empty unless the outcome is `unfulfillable` (`no_stock`) or the order never reached a crane (`no_free_cell`).
+- `outcome` is `completed`, `unfinished`, or `unfulfillable`. `reason` is empty for completed orders. Otherwise it is `no_stock` for unfulfillable orders, `no_free_cell` for unfinished storage orders still waiting for a cell, or `run_ended` for other unfinished orders.
 - Fields with no value are empty.
 
 ## `report.md`

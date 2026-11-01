@@ -49,7 +49,7 @@ A planner changes the warehouse design, such as the number of aisles, crane spee
 
 **Why this priority**: Comparing alternatives is the main use of the results, but it requires reliable single runs first.
 
-**Independent Test**: Can be fully tested by running two warehouse definitions that differ only in crane speed against the same scenario, then confirming that the results are directly comparable and that the faster variant shows shorter crane travel times.
+**Independent Test**: Can be fully tested by running two warehouse definitions that differ only in crane speed against the same scenario, then confirming that the results are directly comparable and that, in a scenario with the same cell assignments, the faster variant has shorter order execution times (completion minus start).
 
 **Acceptance Scenarios**:
 
@@ -79,7 +79,7 @@ A planner changes the warehouse design, such as the number of aisles, crane spee
 
 **Warehouse definition**
 
-- **FR-001**: Users MUST be able to define one warehouse in a versionable data file, including a freely chosen number of aisles, racks per aisle, and freely chosen values for the height, length, and width of its storage cells and the number of cells (through bays and levels). Cell dimensions and positions MUST determine crane travel distances.
+- **FR-001**: Users MUST be able to define one warehouse in a versionable data file, including a freely chosen number of aisles, racks per aisle, and freely chosen values for the height, length, and width of its storage cells and the number of cells (through bays and levels). Cell length, cell height, and cell positions MUST determine crane travel distances. Cell width MUST be validated and recorded, but does not affect travel, because cranes do not change aisles and fork movement is part of the handling time.
 - **FR-001a**: Users MUST be able to define for each aisle, at each of its two ends, whether it has an inbound transfer point, where the crane picks up load units for storage, an outbound transfer point, where the crane sets down retrieved load units, or both. Each aisle MUST have at least one inbound and one outbound transfer point. Crane travel to and from these transfer points MUST be part of each order's movement.
 - **FR-001b**: When an aisle has more than one transfer point of the required type, System MUST use the one that gives the order the shortest total crane travel time.
 - **FR-002**: Users MUST be able to define storage/retrieval equipment in data, including travel speed, acceleration, and load-handling time. Supported equipment is aisle-bound stacker cranes, one per aisle. Conveyors and shuttle systems are out of scope for this feature.

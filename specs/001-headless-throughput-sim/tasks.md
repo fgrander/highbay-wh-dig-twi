@@ -63,8 +63,8 @@ description: "Task list for the headless throughput simulation"
 - [ ] T012 [P] [US1] Write failing tests in `tests/unit/test_allocation.py`: positions `(bay - 0.5) × cell length` and `(level - 1) × cell height`; the cell states in `data-model.md`; `nearest_free` picks the shortest travel time from an inbound point of the cell's aisle across all aisles, with ties in location order; `random_free` is reproducible, uses the stream `storage`, and considers all aisles; retrieval reserves the oldest stored, unreserved load unit of the article across all aisles; a reserved cell is unavailable to other orders
 - [ ] T013 [P] [US1] Write failing tests in `tests/unit/test_engine.py`: the storage and retrieval cycle steps in `data-model.md`; each crane starts at its first inbound point, left before right; a crane stays at its last position between orders; first-come, first-served per crane; FR-001b point selection with left winning ties; a retrieval with no stock is immediately `unfulfillable` with reason `no_stock` and the run continues; stock becomes available only after set-down; a storage order with no free cell waits and receives a cell when one is released at pick-up; open orders at the end are `unfinished`; a scenario with no orders completes; the same inputs give the same events; results do not depend on `on_event`; and `simulate` still succeeds when file access, network access, and the system clock are patched to raise errors
 - [ ] T014 [P] [US1] Write failing tests in `tests/unit/test_metrics.py` for each definition in `contracts/results.md`: window limits; throughput per hour in total and by type; mean, median (odd and even counts), nearest-rank 95th percentile, and maximum; activities clipped to the window; utilization shares summing to 1; backlog at the end and maximum; occupancy counting load units physically present; outcomes over the whole run; statistics are `null` with no data, while throughput is 0
-- [ ] T015 [P] [US1] Write failing tests in `tests/integration/test_cli.py` for `contracts/cli.md`: `validate` and `run` success, exit codes 0, 1, and 2, `--version`, refusal to replace existing outputs without `--overwrite`, and a generated `report.md` and `result.json` containing every FR-012 metric and its definition and unit
-- [ ] T016 [P] [US1] Write failing tests in `tests/integration/test_reproducibility.py`: 10 runs of the same inputs and seed give byte-identical `result.json` and `report.md`, including runs with busy background processes (SC-002); a different seed changes the order sequence and the recorded seed; and a run succeeds in a subprocess with `DISPLAY` removed and with no graphical module imported (FR-008)
+- [ ] T015 [P] [US1] Write failing tests in `tests/integration/test_cli.py` for `contracts/cli.md`: `validate` and `run` success, exit codes 0, 1, and 2, `--version`, refusal to replace existing outputs without `--overwrite`, a generated `report.md` and `result.json` containing every FR-012 metric and its definition and unit, and an `orders.csv` with the exact header in `contracts/results.md` and one row per order
+- [ ] T016 [P] [US1] Write failing tests in `tests/integration/test_reproducibility.py`: 10 runs of the same inputs and seed give byte-identical `result.json`, `report.md`, and `orders.csv`, including runs with busy background processes (SC-002); a different seed changes the order sequence and the recorded seed; and a run succeeds in a subprocess with `DISPLAY` removed and with no graphical module imported (FR-008)
 - [ ] T017 [P] [US1] Write failing tests in `tests/integration/test_invalid_inputs.py`: every case in `samples/invalid/` exits with code 2, starts no simulation, and reports each expected field path (SC-006)
 
 ### Implementation for User Story 1
@@ -74,7 +74,7 @@ description: "Task list for the headless throughput simulation"
 - [ ] T020 [US1] Implement `src/highbay_sim/allocation.py` (depends on T012, T010, T009): cell states, stock per article in stored-time order, `nearest_free` using a priority queue of precomputed travel times, and `random_free` using an indexable list with swap-removal
 - [ ] T021 [US1] Implement `simulate` and crane behavior in `src/highbay_sim/engine.py` (depends on T013, T020, T011, T008): a discrete-event loop ordered by simulated time and sequence number, cell assignment at arrival, cycles and transfer point selection as in `data-model.md`, and the `RunRecord` and `on_event` behavior in `contracts/simulation-api.md`
 - [ ] T022 [US1] Implement `calculate_metrics` and the written metric definitions in `src/highbay_sim/metrics.py` (depends on T014, T021), calculating only from the run's events and initial state
-- [ ] T023 [US1] Implement `report.md` sections 2 to 6 and `result.json` in `src/highbay_sim/outputs.py` (depends on T022) as in `contracts/results.md`, with stable metric names, 3-decimal time formatting, no timestamps or machine details, and the seed in the `run` block
+- [ ] T023 [US1] Implement `report.md` sections 1 to 6, `result.json` including its complete `run` block, and `orders.csv` in `src/highbay_sim/outputs.py` (depends on T022) as in `contracts/results.md`, with stable metric names, the number formats stated there, and no timestamps or machine details
 - [ ] T024 [US1] Implement `validate`, `run`, and `--version` in `src/highbay_sim/cli.py` (depends on T009, T023), with the output formats and exit codes in `contracts/cli.md`
 
 **Checkpoint**: User Story 1 is fully functional. All tests from T012 to T017 pass, and `quickstart.md` Scenarios 1, 2, 4, and 6 succeed.
@@ -92,12 +92,12 @@ description: "Task list for the headless throughput simulation"
 > **NOTE: Write these tests FIRST, and ensure they FAIL before implementation**
 
 - [ ] T025 [P] [US2] Write tests in `tests/verification/test_hand_calculated.py` that check results within 0.1% (SC-003) and show the calculation in comments, for: **V1** as defined in `quickstart.md` Scenario 3; **V2**, the V1 warehouse with inbound and outbound points at both ends and the free cell at bay 2, level 2, giving 5 s movements, storage completion at 25 s, and retrieval completion at 55 s, both via the left end; **V3**, V1 with `warmup_s: 20`, giving a 3,580 s window, throughput of `2 × 3600 / 3580` per hour, moving loaded 7/3580, handling 27/3580, idle 3546/3580, and waiting statistics from the retrieval order only
-- [ ] T026 [P] [US2] Write failing tests in `tests/integration/test_traceability.py`: `result.json` and `report.md` contain the software version, seed, measurement window, and warehouse and scenario names and SHA-256 hashes; a hash matches an independent calculation from the input; the report contains the modeling assumptions; `orders.csv` has the exact header in `contracts/results.md`, one row per order, and correct `location`, `transfer_point`, `outcome`, and `reason` values
+- [ ] T026 [P] [US2] Write tests in `tests/integration/test_traceability.py`: `result.json` and `report.md` contain the software version, seed, measurement window, and warehouse and scenario names and SHA-256 hashes; a hash matches an independent calculation from the input; `orders.csv` has correct `location`, `transfer_point`, `outcome`, and `reason` values, including each reason in `contracts/results.md`; and the report and `result.json` contain the modeling assumptions, which must fail until T028 is done
 
 ### Implementation for User Story 2
 
 - [ ] T027 [P] [US2] Create the V1, V2, and V3 warehouse and scenario files in `samples/verification/`
-- [ ] T028 [US2] Complete the `run` block of `result.json`, add `report.md` sections 1 and 7, and write `orders.csv` in `src/highbay_sim/outputs.py` (depends on T026), with the assumptions list from `spec.md` and `research.md` in both `result.json` and `report.md` (FR-014, FR-015, FR-016)
+- [ ] T028 [US2] Add `report.md` section 7 and the `assumptions` list in `result.json` in `src/highbay_sim/outputs.py` (depends on T026), using the assumptions from `spec.md` and `research.md` (FR-016)
 - [ ] T029 [US2] Correct any difference that T025 reveals in `src/highbay_sim/engine.py` or `src/highbay_sim/metrics.py` by fixing the cause, not the expected values, unless the hand calculation itself is shown to be wrong and that correction is documented in the test
 
 **Checkpoint**: User Stories 1 and 2 both work. `quickstart.md` Scenario 3 succeeds.
@@ -114,11 +114,11 @@ description: "Task list for the headless throughput simulation"
 
 > **NOTE: Write these tests FIRST. Failures here show a gap in earlier stories that must be fixed at its cause.**
 
-- [ ] T030 [P] [US3] Write tests in `tests/integration/test_variants.py` using the files from T031: every variant runs with no software change (SC-005); all `result.json` files have the same metric names and units; generated order times, types, and articles in `orders.csv` are identical across variants with the same seed; the higher-speed variant has no longer crane movement for orders with the same assignment; each aisle-count variant reports one crane per aisle; and transfer point variants use the configured points
+- [ ] T030 [P] [US3] Write tests in `tests/integration/test_variants.py` using the files from T031: every variant runs with no software change (SC-005); all `result.json` files have the same metric names and units; generated order times, types, and articles in `orders.csv` are identical across variants with the same seed; in `samples/variants/spaced-orders.yaml`, an explicit scenario whose orders are far enough apart that cranes are always idle, every order has the same location in both speed variants and a shorter `completion_s - start_s` in the faster one; each aisle-count variant reports one crane per aisle; and transfer point variants use the configured points
 
 ### Implementation for User Story 3
 
-- [ ] T031 [P] [US3] Create `samples/variants/` with copies of `samples/small-warehouse.yaml` that each change one thing: higher crane speed, different `aisle_count`, different cell dimensions and counts, `random_free` storage rule, and transfer points at both aisle ends
+- [ ] T031 [P] [US3] Create `samples/variants/` with copies of `samples/small-warehouse.yaml` that each change one thing: higher crane speed, different `aisle_count`, different cell dimensions and counts, `random_free` storage rule, and transfer points at both aisle ends, and `samples/variants/spaced-orders.yaml` as the explicit scenario used by T030
 - [ ] T032 [US3] Create `README.md` with a section on comparing variants: which fields to change, keeping one scenario and seed, and which `result.json` fields to compare
 
 **Checkpoint**: All user stories are independently functional.
@@ -130,7 +130,7 @@ description: "Task list for the headless throughput simulation"
 **Purpose**: Improvements that affect multiple user stories
 
 - [ ] T033 [P] Write `tests/performance/test_benchmark.py`, building a warehouse programmatically with 20 aisles and 100,000 cells, and asserting that 24 simulated hours at 1,000 orders per hour complete in under 60 seconds (SC-004)
-- [ ] T034 [P] Update FR-001 in `specs/001-headless-throughput-sim/spec.md` to state that cell length and height determine crane travel distances, and that cell width is validated and recorded but does not affect travel, as decided in `research.md`
+- [x] T034 [P] Update FR-001 in `specs/001-headless-throughput-sim/spec.md` to state that cell length and height determine crane travel distances, and that cell width is validated and recorded but does not affect travel, as decided in `research.md`
 - [ ] T035 Extend `README.md` with installation via `uv sync`, usage of `validate` and `run`, input and output file references, and a statement that sample values are illustrative
 - [ ] T036 Run `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy src`, and `uv run pytest`, and fix every problem reported
 - [ ] T037 Run every scenario in `specs/001-headless-throughput-sim/quickstart.md` and record any difference from the expected results
@@ -145,7 +145,7 @@ description: "Task list for the headless throughput simulation"
 - **Foundational (Phase 2)**: Depends on Setup; blocks all user stories
 - **User Story 1 (Phase 3)**: Depends on Foundational
 - **User Story 2 (Phase 4)**: Depends on User Story 1, because it verifies and extends its outputs
-- **User Story 3 (Phase 5)**: Depends on User Story 1; T030 also compares `orders.csv`, so it depends on T028 from User Story 2
+- **User Story 3 (Phase 5)**: Depends on User Story 1
 - **Polish (Phase 6)**: Depends on all stories; T033 needs only User Story 1
 
 ### Within Each User Story
@@ -161,7 +161,7 @@ description: "Task list for the headless throughput simulation"
 - User Story 1: T012 to T017 together; T018 and T019 together
 - User Story 2: T025, T026, T027 together
 - User Story 3: T030, T031 together
-- Polish: T033, T034 together
+- Polish: T033 alongside T035
 
 ---
 
