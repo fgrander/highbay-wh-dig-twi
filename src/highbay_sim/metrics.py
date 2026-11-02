@@ -5,6 +5,7 @@ that any other consumer of a run receives.
 """
 
 import math
+from collections.abc import Iterator
 from dataclasses import dataclass
 from itertools import groupby
 
@@ -167,20 +168,27 @@ def _statistics(values: list[float]) -> TimeStatistics:
     )
 
 
-def _backlog(events: tuple[SimulationEvent, ...], start_s: float) -> tuple[int, int]:
-    """Return the backlog at the end and its maximum in the window.
+def backlog_over_time(events: tuple[SimulationEvent, ...]) -> Iterator[tuple[float, int]]:
+    """Yield each event time with the backlog after all events at that time.
 
     Events with equal times are applied together, so an order that starts as it arrives never
     counts as waiting.
     """
     backlog = 0
-    maximum = 0
     for time_s, group in groupby(events, key=lambda event: event.time_s):
         for event in group:
             if event.kind == "order_arrived":
                 backlog += 1
             elif event.kind in ("order_started", "order_unfulfillable"):
                 backlog -= 1
+        yield time_s, backlog
+
+
+def _backlog(events: tuple[SimulationEvent, ...], start_s: float) -> tuple[int, int]:
+    """Return the backlog at the end and its maximum in the window."""
+    backlog = 0
+    maximum = 0
+    for time_s, backlog in backlog_over_time(events):
         maximum = backlog if time_s <= start_s else max(maximum, backlog)
     return backlog, maximum
 

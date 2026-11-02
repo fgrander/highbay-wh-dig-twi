@@ -18,6 +18,8 @@ Activity = Literal["moving_empty", "moving_loaded", "handling"]
 OrderType = Literal["storage", "retrieval"]
 Location = tuple[int, int, int, int]
 """A storage cell as (aisle, rack, bay, level)."""
+Position = tuple[float, float]
+"""A crane position in an aisle as (horizontal_m, vertical_m)."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -33,3 +35,7 @@ class SimulationEvent:
     activity: Activity | None = None
     end_s: float | None = None
     """When an activity_started event's activity ends, which may be after the run."""
+    start_position: Position | None = None
+    """Where a movement starts; None unless this event starts a movement."""
+    target_position: Position | None = None
+    """Where a movement ends; None unless this event starts a movement."""

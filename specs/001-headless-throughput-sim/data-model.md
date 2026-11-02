@@ -116,7 +116,7 @@ When an aisle offers two points of the required type (FR-001b), the point with t
 
 ### Simulation Event
 
-A record with `time_s`, `sequence`, `kind`, and related IDs. Kinds: `order_arrived`, `order_waiting_for_cell`, `order_queued`, `order_unfulfillable`, `order_started`, `activity_started`, `load_picked`, `load_set`, `order_completed`. Metrics are calculated only from these events and the initial state, using the same stream that later consumers will receive.
+A record with `time_s`, `sequence`, `kind`, and related IDs. Events that start a movement also have `start_position` and `target_position`. Kinds: `order_arrived`, `order_waiting_for_cell`, `order_queued`, `order_unfulfillable`, `order_started`, `activity_started`, `load_picked`, `load_set`, `order_completed`. Metrics are calculated only from these events and the initial state, using the same stream that later consumers will receive.
 
 ### Run Result
 

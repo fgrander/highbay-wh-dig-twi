@@ -14,7 +14,8 @@ from typing import Any
 from highbay_sim.engine import OrderRecord
 from highbay_sim.metrics import DEFINITIONS, Metrics, TimeStatistics
 
-OUTPUT_FILES = ("report.md", "result.json", "orders.csv")
+REPLAY_FILE = "replay.json"
+OUTPUT_FILES = ("report.md", "result.json", "orders.csv", REPLAY_FILE)
 RESULT_SCHEMA_VERSION = 1
 TIME_DECIMALS = 3
 SHARE_DECIMALS = 6
