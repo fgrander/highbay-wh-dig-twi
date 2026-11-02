@@ -42,10 +42,22 @@ A prototype with 100,000 instances and 20 cranes, at 1920×1080 in RTX Real-Time
 | Cranes, plus `protoIndices` changing in every frame | 37 fps | 42 fps |
 
 - **Consequences**: The targets in SC-003 and SC-004 look reachable. Updates cost 8 to 10 ms per frame in Python, mostly for moving 20 cranes one attribute at a time, so `scene.py` should batch them in one change block.
-- **Limits of this measurement**: The camera was close to the racks, so only part of the warehouse was in view. There were no rack frames, floor, or display window, and no state calculation. These numbers do not prove SC-003 or SC-004, and the performance tests in Kit must measure them with the whole warehouse in view.
-- **Not measured**: Time to load the planning-target recording, and moving to a time in Python. The small sample has 14,577 events and takes 1.3 MB, so SC-005 appears to have ample room. A performance test measures it.
+- **Limits of this prototype**: The camera was close to the racks, so only part of the warehouse was in view, with no rack frames, floor, or display window, and no state calculation. The results below replace it as evidence.
 
 The frame limiter and eco mode stay at Kit's defaults in normal use. The tests switch them off to measure capacity.
+
+## Measured targets
+
+Measured once with `tests/performance/test_omniverse_performance.py`, without a window, at 1920×1080 in RTX Real-Time mode, with the whole warehouse in view, playing at 600×, and with the frame limiter and eco mode off:
+
+| Case | Opening | Frames per second | Slowest frame | Slowest move to a time |
+|---|---|---|---|---|
+| Small sample, 3,200 cells, one day (SC-003, SC-005) | 0.9 s | 192 | 12 ms | 0.079 s |
+| Planning target, 100,000 cells, one day (SC-004) | 7.1 s | 32 | 39 ms | 0.995 s |
+
+All targets are met. Kit otherwise fits the viewport to its frame, so the test switches that off and checks the resolution. The opening times are for reading the recording and building the scene, without Kit's own start. A visible window, as a planner uses, has not been measured at this resolution.
+
+Moving to a time on the planning target is close to 1 second, as moving backward applies all events again. SC-005 only sets a limit for the small sample.
 
 ## Closing Kit
 

@@ -1,12 +1,14 @@
 """The only module that decides how objects look.
 
-To use detailed models, replace these functions: each creates the object for one type from
-dimensions, and the rest of the extension only places it.
+Each function creates the object for one type from dimensions, and the rest of the extension only
+places it. A setting per type can name a USD file to use in place of a simple shape.
 """
 
 from typing import Any
 
-from pxr import Gf, UsdGeom, UsdLux
+import carb
+import carb.settings
+from pxr import Gf, Sdf, UsdGeom, UsdLux
 
 from .core.layout import Bounds, Layout, Vector
 
@@ -37,6 +39,9 @@ RACK_MEMBER_THICKNESS_M = 0.08
 FLOOR_THICKNESS_M = 0.1
 DOME_INTENSITY = 350.0
 SUN_INTENSITY = 400.0
+LOOK_SETTING = "/exts/highbay.replay/looks/"
+
+look_warnings: list[str] = []
 
 
 def color(hex_color: str) -> Gf.Vec3f:
@@ -59,7 +64,42 @@ def activity_color(activity: str) -> Gf.Vec3f:
     return color(ACTIVITY_COLORS[activity])
 
 
-def _box(stage: Any, path: str, size: Vector, center: Vector, box_color: Gf.Vec3f) -> Any:
+def _look_file(look: str | None) -> str | None:
+    """Returns the file that replaces a type's simple shape, if there is one that can be used."""
+    file = carb.settings.get_settings().get(LOOK_SETTING + look) if look else None
+    if not file:
+        return None
+    try:
+        usable = Sdf.Layer.FindOrOpen(file) is not None
+    except Exception:
+        usable = False
+    if usable:
+        return str(file)
+    warning = f"The look for {look} could not be loaded from {file}, so its simple shape is used."
+    if warning not in look_warnings:
+        look_warnings.append(warning)
+        carb.log_warn(warning)
+    return None
+
+
+def _box(
+    stage: Any,
+    path: str,
+    size: Vector,
+    center: Vector,
+    box_color: Gf.Vec3f,
+    look: str | None = None,
+) -> Any:
+    file = _look_file(look)
+    if file:
+        model = UsdGeom.Xform.Define(stage, path)
+        model.GetPrim().GetReferences().AddReference(file)
+        model.AddTranslateOp().Set(Gf.Vec3d(*center))
+        # Parts of the model inherit this color if they have none of their own.
+        UsdGeom.PrimvarsAPI(model).CreatePrimvar(
+            "displayColor", Sdf.ValueTypeNames.Color3fArray, UsdGeom.Tokens.constant
+        ).Set([box_color])
+        return model
     cube = UsdGeom.Cube.Define(stage, path)
     cube.CreateSizeAttr(1.0)
     cube.CreateExtentAttr([Gf.Vec3f(-0.5), Gf.Vec3f(0.5)])
@@ -102,7 +142,7 @@ def create_load_prototypes(stage: Any, instancer_path: str, layout: Layout) -> l
     paths = []
     for index, article_color in enumerate(ARTICLE_COLORS):
         path = f"{instancer_path}/Load_{index}"
-        _box(stage, path, layout.load_size(), (0.0, 0.0, 0.0), color(article_color))
+        _box(stage, path, layout.load_size(), (0.0, 0.0, 0.0), color(article_color), "load_unit")
         paths.append(path)
     return paths
 
@@ -112,8 +152,11 @@ def create_rack_prototypes(stage: Any, instancer_path: str, layout: Layout) -> t
     thickness = RACK_MEMBER_THICKNESS_M
     upright = f"{instancer_path}/Upright"
     beam = f"{instancer_path}/Beam"
-    _box(stage, upright, (thickness, layout.height, thickness), (0, 0, 0), color(RACK_COLOR))
-    _box(stage, beam, (layout.length, thickness, thickness), (0, 0, 0), color(RACK_COLOR))
+    rack_color = color(RACK_COLOR)
+    size = (thickness, layout.height, thickness)
+    _box(stage, upright, size, (0, 0, 0), rack_color, "rack_upright")
+    size = (layout.length, thickness, thickness)
+    _box(stage, beam, size, (0, 0, 0), rack_color, "rack_beam")
     return upright, beam
 
 
@@ -122,16 +165,19 @@ def create_crane(stage: Any, path: str, layout: Layout) -> None:
     idle = activity_color("idle")
     crane = UsdGeom.Xform.Define(stage, path)
     crane.AddTranslateOp().Set(Gf.Vec3d(0.0))
-    _box(stage, f"{path}/Mast", layout.mast_size(), (0.0, layout.height / 2, 0.0), idle)
+    center = (0.0, layout.height / 2, 0.0)
+    _box(stage, f"{path}/Mast", layout.mast_size(), center, idle, "crane_mast")
     carriage = UsdGeom.Xform.Define(stage, f"{path}/Carriage")
     carriage.AddTranslateOp().Set(Gf.Vec3d(0.0))
-    _box(stage, f"{path}/Carriage/Platform", layout.platform_size(), (0.0, 0.0, 0.0), idle)
+    platform = f"{path}/Carriage/Platform"
+    _box(stage, platform, layout.platform_size(), (0.0, 0.0, 0.0), idle, "crane_carriage")
     carried = _box(
         stage,
         f"{path}/Carriage/CarriedLoad",
         layout.load_size(),
         (0.0, layout.carried_load_height(), 0.0),
         color(ARTICLE_COLORS[0]),
+        "load_unit",
     )
     carried.CreateVisibilityAttr(UsdGeom.Tokens.invisible)
 
@@ -147,6 +193,7 @@ def create_transfer_point(
         (size, size * 0.1, size / 2),
         (position[0], size * 0.05, position[1]),
         color(INBOUND_COLOR if role == "inbound" else OUTBOUND_COLOR),
+        "transfer_point",
     )
 
 

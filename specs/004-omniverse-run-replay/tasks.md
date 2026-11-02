@@ -126,13 +126,13 @@ description: "Task list for the Omniverse run replay"
 
 ### Tests for User Story 3
 
-- [ ] T037 [US3] Write `tests/data/scripted_state_source.py` only from `contracts/state-interface.md`: a small warehouse with one crane moving and one load unit, with `can_move_backward` false, `range_is_final` false, a range whose end grows, and no `reported`
-- [ ] T038 [US3] Write tests in `tests/omniverse_kit/test_kit_state_source.py`, marked `omniverse`: the scripted source, connected through `open_source`, drives the scene, and playback holds at the end of its range and continues when it grows; the time slider, restart, and jump to the highest backlog are disabled; and a check of the source tree shows that `scene.py` and `window.py` import only the protocol from `core`, not `RecordedSource` (SC-007). Fix any place where display code assumed a recording, keeping the interface unchanged
-- [ ] T039 [US3] Write failing tests in `tests/omniverse_kit/test_kit_looks.py`, marked `omniverse`, with a small test `.usda` file in `tests/data/`: a replacement crane mast is referenced, while its position over time stays the same; and a missing file gives the simple shape and a warning naming the type
+- [X] T037 [US3] Write `tests/data/scripted_state_source.py` only from `contracts/state-interface.md`: a small warehouse with one crane moving and one load unit, with `can_move_backward` false, `range_is_final` false, a range whose end grows, and no `reported`
+- [X] T038 [US3] Write tests in `tests/omniverse_kit/test_kit_state_source.py`, marked `omniverse`: the scripted source, connected through `open_source`, drives the scene, and playback holds at the end of its range and continues when it grows; the time slider, restart, and jump to the highest backlog are disabled; and a check of the source tree shows that `scene.py` and `window.py` import only the protocol from `core`, not `RecordedSource` (SC-007). Fix any place where display code assumed a recording, keeping the interface unchanged
+- [X] T039 [US3] Write failing tests in `tests/omniverse_kit/test_kit_looks.py`, marked `omniverse`, with a small test `.usda` file in `tests/data/`: a replacement crane mast is referenced, while its position over time stays the same; and a missing file gives the simple shape and a warning naming the type
 
 ### Implementation for User Story 3
 
-- [ ] T040 [US3] Add the settings `/exts/highbay.replay/looks/<type>` to `EXT/highbay/replay/appearance.py`, with the fallback and warning in `contracts/application.md`. Run T039, and make it pass
+- [X] T040 [US3] Add the settings `/exts/highbay.replay/looks/<type>` to `EXT/highbay/replay/appearance.py`, with the fallback and warning in `contracts/application.md`. Run T039, and make it pass
 
 **Checkpoint**: All user stories are complete.
 
@@ -142,7 +142,7 @@ description: "Task list for the Omniverse run replay"
 
 **Purpose**: Performance proof, documentation, and final validation
 
-- [ ] T041 Write `tests/performance/test_omniverse_performance.py`, marked `performance` and `omniverse`, with the whole warehouse in view at 1920×1080, the frame limiter and eco mode off, and a run playing at 600×: SC-003 on the small sample, SC-004 on the planning target from `tests/performance/write_planning_target.py`, and SC-005 at 20 random times on a one-day small sample. Replace the "Limits of this measurement" and "Not measured" notes in `research.md` with the results. If a target is missed, report it to the project owner rather than changing the target
+- [X] T041 Write `tests/performance/test_omniverse_performance.py`, marked `performance` and `omniverse`, with the whole warehouse in view at 1920×1080, the frame limiter and eco mode off, and a run playing at 600×: SC-003 on the small sample, SC-004 on the planning target from `tests/performance/write_planning_target.py`, and SC-005 at 20 random times on a one-day small sample. Replace the "Limits of this measurement" and "Not measured" notes in `research.md` with the results. If a target is missed, report it to the project owner rather than changing the target
 - [ ] T042 [P] Update `README.md`: the Omniverse replay, its graphics requirements, `setup.ps1`, license terms, data collection being off, `run-replay.ps1`, and that Kit tests run only with `-m omniverse`, plus a link to `specs/004-omniverse-run-replay/contracts/application.md`. Change the sentence that names Omniverse as a later feature. Add a screenshot in `docs/media/` from T027
 - [ ] T043 [P] Add a look-replacement section to `EXT/README.md`, and confirm that it is enough to do `quickstart.md` S8 by hand
 - [ ] T044 Run `quickstart.md` S1 with Kit's folder renamed, and confirm that `omniverse` tests are deselected by default and skipped with `-m omniverse`, and that all others pass, including reference hashes (SC-008)

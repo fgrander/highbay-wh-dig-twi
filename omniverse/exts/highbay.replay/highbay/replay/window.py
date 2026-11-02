@@ -97,6 +97,15 @@ class ReplayWindow:
         self._peak.visible = has_peak
         self._peak.enabled = has_run and can_move_backward
 
+    def control_states(self) -> dict[str, bool]:
+        """Returns which controls can be used, for tests."""
+        return {
+            "play": self._play.enabled,
+            "restart": self._restart.enabled,
+            "slider": self._slider.enabled,
+            "peak_visible": self._peak.visible,
+        }
+
     def show_run(self, folder: str | None, description: WarehouseDescription) -> None:
         if folder is not None:
             self._folder.model.set_value(folder)

@@ -52,6 +52,7 @@ class WarehouseScene:
         self.stage = stage
         self.layout = create_layout(description.layout)
         self.bounds = self.layout.bounds()
+        appearance.look_warnings.clear()
         UsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.y)
         UsdGeom.SetStageMetersPerUnit(stage, 1.0)
         stage.SetDefaultPrim(UsdGeom.Xform.Define(stage, WORLD).GetPrim())
