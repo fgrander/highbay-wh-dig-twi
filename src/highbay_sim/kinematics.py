@@ -24,3 +24,24 @@ def movement_time(
         axis_travel_time(horizontal_distance_m, horizontal_speed_m_s, horizontal_acceleration_m_s2),
         axis_travel_time(vertical_distance_m, vertical_speed_m_s, vertical_acceleration_m_s2),
     )
+
+
+def axis_position(
+    start_m: float, target_m: float, speed_m_s: float, acceleration_m_s2: float, elapsed_s: float
+) -> float:
+    """Return where an axis is after a time, starting at rest and stopping exactly at its target."""
+    distance = abs(target_m - start_m)
+    if elapsed_s <= 0.0:
+        return start_m
+    total = axis_travel_time(distance, speed_m_s, acceleration_m_s2)
+    if elapsed_s >= total:
+        return target_m
+    remaining = total - elapsed_s
+    ramp = min(speed_m_s / acceleration_m_s2, total / 2.0)
+    if elapsed_s < ramp:
+        travelled = acceleration_m_s2 * elapsed_s * elapsed_s / 2.0
+    elif remaining <= ramp:
+        travelled = distance - acceleration_m_s2 * remaining * remaining / 2.0
+    else:
+        travelled = speed_m_s * (elapsed_s - ramp / 2.0)
+    return start_m + math.copysign(travelled, target_m - start_m)
