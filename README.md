@@ -2,7 +2,7 @@
 
 A command-line throughput simulation of one high-bay warehouse, written in Python. It runs with no graphical interface. A warehouse and an order scenario are defined in YAML files, and each run writes a report of throughput metrics.
 
-A run can also be replayed in 3D in a web browser. Live data connections are planned as a later feature.
+A run can also be replayed in 3D in a web browser, or carried out cycle by cycle by a plant model with a replaceable controller. NVIDIA Omniverse visualization, PLC connections, and live data are planned as later features.
 
 ## Installation
 
@@ -99,6 +99,28 @@ Check `run.warehouse.sha256` and `run.scenario.sha256` to confirm which inputs p
 Order timing can change which cells orders receive, so compare individual orders only in a scenario like `samples/variants/spaced-orders.yaml`, whose orders are far enough apart that cranes are always idle.
 
 The storage location rules do not consider how busy each crane is. `nearest_free` in particular fills the nearest cells of the lowest-numbered aisles first and can overload those cranes, so a low throughput may reflect the rule rather than the warehouse design. Every report lists all modeling assumptions.
+
+## Time-stepped runs
+
+Add `--time-stepped` to run the warehouse in fixed cycles, the way a plant reacts to a PLC. In each cycle, a controller reads and writes [a list of signals](specs/003-time-stepped-plant-model/contracts/signal-list.md), using per-axis positioning, and the plant advances by one time step. The input files stay the same, and the results have the same form, with the mode, cycle time, controller, and any faults added.
+
+```text
+uv run highbay-sim run samples/small-warehouse.yaml samples/daily-scenario.yaml --output out/stepped --time-stepped
+uv run highbay-sim run samples/small-warehouse.yaml samples/daily-scenario.yaml --output out/event
+uv run highbay-sim compare out/event out/stepped
+```
+
+`compare` shows every metric of two runs of the same inputs and how far they deviate. The sources of deviation are listed in each time-stepped report. `--replay` works as for event-based runs.
+
+| Option | Default | Meaning |
+|---|---|---|
+| `--cycle-ms N` | 50 | Cycle time, as a whole number of milliseconds from 1 to 1,000 |
+| `--controller FILE.py:CLASS` | built-in | Controller to use. This runs that file as code, so use only files you trust. |
+| `--record-signals` | off | Also write `signals.csv`, with every change of every signal. It can reach about 100 MB per simulated hour in a large warehouse, so use it for short runs. |
+
+A controller is a class that needs no arguments to create, and has a method `scan(self, signals)`, which is called once per cycle with a mapping from aisle number to that crane's signals. `tests/data/scripted_controller.py` is an example. Order handling stays in the simulation, and gives the controller transport jobs through the signals. A command that the plant cannot carry out does not stop the run: the plant reports a fault on that crane, and the fault is listed in the results.
+
+No PLC can be connected yet: this feature prepares that connection. The plant model is ideal: drives have no position error, and safety functions are not modeled.
 
 ## Development
 

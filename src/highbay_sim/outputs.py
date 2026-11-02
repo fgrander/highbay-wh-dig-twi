@@ -13,9 +13,11 @@ from typing import Any
 
 from highbay_sim.engine import OrderRecord
 from highbay_sim.metrics import DEFINITIONS, Metrics, TimeStatistics
+from highbay_sim.signals import Fault
 
 REPLAY_FILE = "replay.json"
-OUTPUT_FILES = ("report.md", "result.json", "orders.csv", REPLAY_FILE)
+SIGNAL_FILE = "signals.csv"
+OUTPUT_FILES = ("report.md", "result.json", "orders.csv", REPLAY_FILE, SIGNAL_FILE)
 RESULT_SCHEMA_VERSION = 1
 TIME_DECIMALS = 3
 SHARE_DECIMALS = 6
@@ -60,6 +62,29 @@ ASSUMPTIONS = (
     "which cover the whole run.",
     "Equipment failures, maintenance, staffing, and energy use are not modeled.",
 )
+TIME_STEPPED_ASSUMPTIONS = (
+    "The plant advances in fixed cycles. Each movement and handling step ends on the next cycle "
+    "boundary, so it takes on average half a cycle longer than in an event-based run.",
+    "The job handshake between order handling and the controller takes one cycle per order.",
+    "An order's arrival takes effect at the next cycle boundary, while keeping its exact time.",
+    "Because timing shifts slightly, an arrival and a released cell can swap order compared with "
+    "an event-based run, which can change a chosen cell, especially with a random storage rule.",
+    "Drives are ideal: they follow the speed and acceleration limits exactly, with no position "
+    "error, sensor noise, or stopping distance. Safety functions are not modeled.",
+    "Fork motion is not modeled: handling takes the pick and set times from the crane parameters.",
+    "A movement of zero distance, or a movement outside a transport job, does not count as crane "
+    "work. A movement can start only while both axes of the crane are at rest.",
+)
+
+
+@dataclass(frozen=True)
+class Execution:
+    """How a time-stepped run was carried out."""
+
+    cycle_ms: int
+    controller_name: str
+    controller_sha256: str | None
+    signal_list_version: int
 
 
 @dataclass(frozen=True)
@@ -71,6 +96,7 @@ class RunInfo:
     scenario_name: str
     scenario_sha256: str
     duration_s: float
+    execution: Execution | None = None
 
 
 def existing_outputs(directory: Path) -> list[Path]:
@@ -78,10 +104,14 @@ def existing_outputs(directory: Path) -> list[Path]:
 
 
 def write_outputs(
-    directory: Path, info: RunInfo, metrics: Metrics, orders: tuple[OrderRecord, ...]
+    directory: Path,
+    info: RunInfo,
+    metrics: Metrics,
+    orders: tuple[OrderRecord, ...],
+    faults: tuple[Fault, ...] = (),
 ) -> None:
     directory.mkdir(parents=True, exist_ok=True)
-    result = result_document(info, metrics)
+    result = result_document(info, metrics, faults)
     _write(directory / "result.json", json.dumps(result, indent=2) + "\n")
     _write(directory / "report.md", report_text(info, result))
     _write(directory / "orders.csv", orders_csv(orders))
@@ -111,7 +141,36 @@ def _statistics(statistics: TimeStatistics) -> dict[str, float | None]:
     }
 
 
-def result_document(info: RunInfo, metrics: Metrics) -> dict[str, Any]:
+def result_document(
+    info: RunInfo, metrics: Metrics, faults: tuple[Fault, ...] = ()
+) -> dict[str, Any]:
+    document = _base_document(info, metrics)
+    if info.execution is not None:
+        document["run"]["execution"] = {
+            "mode": "time_stepped",
+            "cycle_ms": info.execution.cycle_ms,
+            "controller": {
+                "name": info.execution.controller_name,
+                "sha256": info.execution.controller_sha256,
+            },
+            "signal_list_version": info.execution.signal_list_version,
+        }
+        document["assumptions"] += TIME_STEPPED_ASSUMPTIONS
+        document["faults"] = [
+            {
+                "cycle": fault.cycle,
+                "time_s": fault.time_s,
+                "crane": fault.crane,
+                "code": int(fault.code),
+                "name": fault.code.name.lower(),
+                "description": fault.description,
+            }
+            for fault in faults
+        ]
+    return document
+
+
+def _base_document(info: RunInfo, metrics: Metrics) -> dict[str, Any]:
     return {
         "schema_version": RESULT_SCHEMA_VERSION,
         "run": {
@@ -237,6 +296,7 @@ def report_text(info: RunInfo, result: dict[str, Any]) -> str:
         f"- Orders unfinished: {outcomes['unfinished']}",
         f"- Orders unfulfillable: {outcomes['unfulfillable']}",
         "",
+        *_execution_lines(result),
         "## Metric definitions",
         "",
         "| Metric | Unit | Definition |",
@@ -249,6 +309,34 @@ def report_text(info: RunInfo, result: dict[str, Any]) -> str:
     lines += ["", "## Modeling assumptions and simplifications", ""]
     lines += [f"- {assumption}" for assumption in result["assumptions"]]
     return "\n".join(lines) + "\n"
+
+
+def _execution_lines(result: dict[str, Any]) -> list[str]:
+    execution = result["run"].get("execution")
+    if execution is None:
+        return []
+    controller = execution["controller"]
+    hash_text = "" if controller["sha256"] is None else f" (SHA-256 `{controller['sha256']}`)"
+    lines = [
+        "## Execution",
+        "",
+        "- Mode: time_stepped",
+        f"- Cycle time: {execution['cycle_ms']} ms",
+        f"- Controller: {controller['name']}{hash_text}",
+        f"- Signal list version: {execution['signal_list_version']}",
+        "",
+        "## Faults",
+        "",
+    ]
+    if not result["faults"]:
+        return [*lines, "There were no faults.", ""]
+    lines += ["| Cycle | Time (s) | Crane | Fault | Description |", "|---|---|---|---|---|"]
+    lines += [
+        f"| {fault['cycle']} | {fault['time_s']} | {fault['crane']} | {fault['name']} "
+        f"| {fault['description']} |"
+        for fault in result["faults"]
+    ]
+    return [*lines, ""]
 
 
 def orders_csv(orders: tuple[OrderRecord, ...]) -> str:
