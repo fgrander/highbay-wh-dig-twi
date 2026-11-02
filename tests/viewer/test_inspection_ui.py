@@ -157,13 +157,13 @@ def test_moving_empty_to_a_transfer_point_names_it(
 
 
 def test_clicking_an_occupied_cell_selects_its_load_unit_and_shows_the_cell(v1: Page) -> None:
-    click_at(v1, hook(v1, "cellScreenPosition([1, 1, 1, 1])"))
+    click_at(v1, hook(v1, "cellScreenPosition([1, 1, 2, 2])"))
     selection = hook(v1, "selection")
     assert selection["kind"] == "load"
     text = details(v1)
     assert "B" in text
     assert "initial stock" in text
-    assert "1-1-1-1" in text
+    assert "1-1-2-2" in text
     assert "occupied" in text
 
 

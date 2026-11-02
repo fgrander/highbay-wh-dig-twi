@@ -163,3 +163,44 @@ def test_unfulfillable_count_is_shown_at_its_time(
     assert figure(overloaded, "unfulfillable") == str(
         data["reported"]["order_outcomes"]["unfulfillable"]
     )
+
+
+def working_crane_pixels(page: Page) -> int:
+    """Count the drawn pixels in the hues of a working crane, which nothing else uses."""
+    return page.evaluate(
+        """() => {
+            const canvas = document.querySelector('#view canvas');
+            const copy = document.createElement('canvas');
+            copy.width = canvas.width;
+            copy.height = canvas.height;
+            window.highbayViewer.renderNow();
+            const context = copy.getContext('2d');
+            context.drawImage(canvas, 0, 0);
+            const { data } = context.getImageData(0, 0, copy.width, copy.height);
+            let count = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                const [r, g, b] = [data[i], data[i + 1], data[i + 2]];
+                const max = Math.max(r, g, b);
+                const range = max - Math.min(r, g, b);
+                if (range === 0 || range / max <= 0.5 || max <= 76) continue;
+                let sector = (r - g) / range + 4;
+                if (max === r) sector = ((g - b) / range + 6) % 6;
+                else if (max === g) sector = (b - r) / range + 2;
+                const hue = sector * 60;
+                if ((hue >= 18 && hue <= 36) || (hue >= 205 && hue <= 285)) count += 1;
+            }
+            return count;
+        }"""
+    )
+
+
+def test_default_view_shows_a_working_crane_among_stored_stock(
+    page: Page, serve: Callable[[Path], str], overloaded_output: Path
+) -> None:
+    open_viewer(page, serve(overloaded_output / "replay.json"))
+    counts = []
+    for time_s in range(2490, 3567, 108):
+        move_to(page, time_s)
+        assert hook(page, "crane(1)")["activity"] != "idle"
+        counts.append(working_crane_pixels(page))
+    assert min(counts) >= 90, counts

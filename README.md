@@ -38,7 +38,7 @@ All values in `samples/` are illustrative and are not real equipment data. Repla
 
 ![Cranes working through a growing backlog in aisle 1, replayed at 60x speed](docs/media/replay.gif)
 
-The recording shows `samples/replay/overloaded-warehouse.yaml` from a camera turned to look into the aisles. All numbers in this sample are placeholders. See also the [default view](docs/media/default-view.png) and the [highest backlog with a crane selected](docs/media/peak-backlog.png).
+The recording shows `samples/replay/overloaded-warehouse.yaml` in the default view. All numbers in this sample are placeholders. See also the [default view](docs/media/default-view.png) and the [highest backlog with a crane selected](docs/media/peak-backlog.png).
 
 Add `--replay` to write `replay.json` next to the results, then open it:
 

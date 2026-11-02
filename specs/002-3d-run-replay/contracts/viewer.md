@@ -29,7 +29,7 @@ Logic modules do not use the document or three.js, so they can be tested directl
 | Restart | Goes to time 0 and pauses |
 | Time slider | Moves to the chosen time, covering the whole run |
 | Speed | 1×, 10×, 60×, 600×, or 3,600× |
-| Default view | Returns the camera to show the whole warehouse |
+| Default view | Returns the camera to show the whole warehouse, looking steeply along the aisles so that stored stock does not hide the cranes |
 | Go to highest backlog | Moves to `reported.first_backlog_peak_s` and pauses |
 | Drag, right-drag, and scroll in the view | Rotate, move, and zoom |
 | Click in the view | A crane selects the crane, and its details offer any carried load unit for selection. Otherwise the first load unit along the ray is selected, through empty cells, with its cell's details also shown. With no load unit along the ray, the nearest cell is selected. Anywhere else clears the selection. |

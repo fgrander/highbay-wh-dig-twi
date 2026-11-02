@@ -17,7 +17,8 @@ import { OrbitControls } from "./vendor/OrbitControls.js";
 
 const TRANSFER_ROLES = ["inbound", "outbound"];
 const ENDS = ["left", "right"];
-const VIEW_DIRECTION = new THREE.Vector3(0.55, 0.45, 0.7).normalize();
+// Steep and nearly along the aisles, so that stored stock does not hide the cranes.
+const VIEW_DIRECTION = new THREE.Vector3(0.3, 0.9, 0.15).normalize();
 const FIELD_OF_VIEW_DEGREES = 45;
 
 const locationKey = ([aisle, rack, bay, level]) => `${aisle}-${rack}-${bay}-${level}`;
