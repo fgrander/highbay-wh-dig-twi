@@ -31,9 +31,8 @@ RACK_COLOR = "#7c8794"
 INBOUND_COLOR = "#3fae5a"
 OUTBOUND_COLOR = "#d35454"
 FLOOR_COLOR = "#e4e7ea"
-HIGHLIGHT_COLOR = "#000000"
-LOAD_SIZE_SHARE = 0.85
-CRANE_THICKNESS_SHARE = 0.5
+HIGHLIGHT_COLOR = "#ffd400"
+HIGHLIGHT_WIDTH_M = 0.08
 RACK_MEMBER_THICKNESS_M = 0.08
 FLOOR_THICKNESS_M = 0.1
 DOME_INTENSITY = 350.0
@@ -70,14 +69,6 @@ def _box(stage: Any, path: str, size: Vector, center: Vector, box_color: Gf.Vec3
     return cube
 
 
-def load_size(layout: Layout) -> Vector:
-    return (
-        layout.cell_length * LOAD_SIZE_SHARE,
-        layout.cell_height * LOAD_SIZE_SHARE,
-        layout.cell_width * LOAD_SIZE_SHARE,
-    )
-
-
 def create_lights(stage: Any, dome_path: str, sun_path: str) -> None:
     UsdLux.DomeLight.Define(stage, dome_path).CreateIntensityAttr(DOME_INTENSITY)
     sun = UsdLux.DistantLight.Define(stage, sun_path)
@@ -111,7 +102,7 @@ def create_load_prototypes(stage: Any, instancer_path: str, layout: Layout) -> l
     paths = []
     for index, article_color in enumerate(ARTICLE_COLORS):
         path = f"{instancer_path}/Load_{index}"
-        _box(stage, path, load_size(layout), (0.0, 0.0, 0.0), color(article_color))
+        _box(stage, path, layout.load_size(), (0.0, 0.0, 0.0), color(article_color))
         paths.append(path)
     return paths
 
@@ -128,32 +119,18 @@ def create_rack_prototypes(stage: Any, instancer_path: str, layout: Layout) -> t
 
 def create_crane(stage: Any, path: str, layout: Layout) -> None:
     """Creates a crane: a mast that moves along the aisle, and a carriage that moves up it."""
-    thickness = layout.cell_width * CRANE_THICKNESS_SHARE
     idle = activity_color("idle")
     crane = UsdGeom.Xform.Define(stage, path)
     crane.AddTranslateOp().Set(Gf.Vec3d(0.0))
-    _box(
-        stage,
-        f"{path}/Mast",
-        (layout.cell_length * 0.12, layout.height, thickness),
-        (0.0, layout.height / 2, 0.0),
-        idle,
-    )
+    _box(stage, f"{path}/Mast", layout.mast_size(), (0.0, layout.height / 2, 0.0), idle)
     carriage = UsdGeom.Xform.Define(stage, f"{path}/Carriage")
     carriage.AddTranslateOp().Set(Gf.Vec3d(0.0))
-    _box(
-        stage,
-        f"{path}/Carriage/Platform",
-        (layout.cell_length * 0.9, layout.cell_height * 0.1, thickness * 1.3),
-        (0.0, 0.0, 0.0),
-        idle,
-    )
-    size = load_size(layout)
+    _box(stage, f"{path}/Carriage/Platform", layout.platform_size(), (0.0, 0.0, 0.0), idle)
     carried = _box(
         stage,
         f"{path}/Carriage/CarriedLoad",
-        size,
-        (0.0, size[1] / 2 + layout.cell_height * 0.05, 0.0),
+        layout.load_size(),
+        (0.0, layout.carried_load_height(), 0.0),
         color(ARTICLE_COLORS[0]),
     )
     carried.CreateVisibilityAttr(UsdGeom.Tokens.invisible)
@@ -173,11 +150,25 @@ def create_transfer_point(
     )
 
 
-def create_highlight(stage: Any, path: str) -> None:
-    """Creates the empty group that marks a selected object, hidden with no selection."""
+def create_highlight(stage: Any, path: str, layout: Layout) -> None:
+    """Creates the outline around a selected object, hidden with no selection."""
     highlight = UsdGeom.Xform.Define(stage, path)
     highlight.AddTranslateOp().Set(Gf.Vec3d(0.0))
     highlight.CreateVisibilityAttr(UsdGeom.Tokens.invisible)
+    x, y, z = layout.cell_length / 2, layout.cell_height / 2, layout.cell_width / 2
+    corners = [Gf.Vec3f(a, b, c) for a in (-x, x) for b in (-y, y) for c in (-z, z)]
+    edges = [
+        (first, second)
+        for first in range(8)
+        for second in range(first + 1, 8)
+        if bin(first ^ second).count("1") == 1
+    ]
+    outline = UsdGeom.BasisCurves.Define(stage, f"{path}/Outline")
+    outline.CreateTypeAttr(UsdGeom.Tokens.linear)
+    outline.CreateCurveVertexCountsAttr([2] * len(edges))
+    outline.CreatePointsAttr([corners[index] for edge in edges for index in edge])
+    outline.CreateWidthsAttr([HIGHLIGHT_WIDTH_M] * (2 * len(edges)))
+    outline.CreateDisplayColorAttr([color(HIGHLIGHT_COLOR)])
 
 
 def article_color(index: int) -> Gf.Vec3f:

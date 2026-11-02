@@ -69,7 +69,9 @@ Kit's viewport grid and light icon stay visible. Both can be switched off in the
 
 - **Decision**: A click in the viewport creates a ray from the camera. The ray finds cranes by their boxes, and cells with `picking.py`, with the same rules as the browser.
 - **Rationale**: One instancer with 100,000 instances has no useful per-instance selection in the stage, and a calculated ray also finds empty cells.
-- **Risk**: Getting a click and camera ray from the viewport in Kit 110 was not prototyped, so the task for it must try this first. As a fallback, the window offers a list of cranes and entry fields for a location.
+- **Outcome**: A `ClickGesture` on a screen in a `SceneView` gives the click position in normalized coordinates, and `viewport_click.py` works out the ray from the camera. Emulated mouse clicks in a visible window selected a crane and a load unit, and cleared the selection at an empty place. The fallback is not needed.
+- **Note**: A floating replay window over the viewport takes the clicks there, so the window is docked beside the Property panel.
+- **Kit's own selection**: It would also react to a click, mark a prim in the Stage panel, and show its move handles in the viewport. The project owner decided to switch it off, with `startup.selectionManipulator.enabled = false` in the application definition, as handles have no use in a viewer.
 
 ## Looks
 

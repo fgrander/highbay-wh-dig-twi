@@ -18,6 +18,7 @@ from .state_source import (
     CraneState,
     LoadUnit,
     Location,
+    OrderDetails,
     RunState,
     StateSourceError,
     WarehouseDescription,
@@ -32,7 +33,14 @@ _ACTIVITY = 5
 _END = 6
 _START_POSITION = 7
 _TARGET_POSITION = 8
+_ORDER_ID = 0
+_ORDER_TYPE = 1
 _ORDER_ARTICLE = 2
+_ORDER_ARRIVAL = 3
+_ORDER_START = 4
+_ORDER_COMPLETION = 5
+_ORDER_LOCATION = 7
+_ORDER_END = 8
 
 
 @dataclass(frozen=True, slots=True)
@@ -278,6 +286,19 @@ class RecordedSource:
     def load(self, key: str) -> LoadUnit | None:
         load = self._loads.get(key)
         return replace(load) if load is not None else None
+
+    def order(self, index: int) -> OrderDetails:
+        row = self._data["orders"][index]
+        location = row[_ORDER_LOCATION]
+        return OrderDetails(
+            order_id=row[_ORDER_ID],
+            type=row[_ORDER_TYPE],
+            arrival_s=row[_ORDER_ARRIVAL],
+            start_s=row[_ORDER_START],
+            completion_s=row[_ORDER_COMPLETION],
+            location=tuple(location) if location is not None else None,
+            end=row[_ORDER_END],
+        )
 
 
 def open_recording(folder: Path | str) -> RecordedSource:

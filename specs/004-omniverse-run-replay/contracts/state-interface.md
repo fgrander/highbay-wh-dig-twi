@@ -17,6 +17,7 @@ This is the only way that run data reaches the scene and the display (FR-012). I
 | `stored_load_units()` | Load units | All load units in cells, in location order, for redrawing all cells |
 | `cell(location)` | Cell details | Current state and load unit of one cell |
 | `load(key)` | Load unit details | A carried or stored load unit, or nothing if it no longer exists |
+| `order(index)` | Order details | Number, type, times, cell, and aisle end of an order that a crane or load unit names |
 
 ## Behavior
 

@@ -103,16 +103,16 @@ description: "Task list for the Omniverse run replay"
 
 ### Tests for User Story 2
 
-- [ ] T030 [P] [US2] Write failing tests in `tests/omniverse/test_core_picking.py`, following `src/highbay_sim/viewer/picking.js` and `tests/viewer/test_picking.py`: the first occupied cell along a ray seen through empty cells, the nearest cell with none occupied, and no result for a ray that misses all racks. Add a comparison with `picking.js` at sampled rays to `tests/viewer/test_core_parity.py`
-- [ ] T031 [US2] Write failing tests in `tests/omniverse/test_core_reported.py`, without Kit: for every warehouse and scenario pair in `tests/data/reference_results.json`, the state at `reported.first_backlog_peak_s` has a total backlog equal to `reported.backlog_orders.max_in_window` (SC-006). Also write failing tests in `tests/omniverse_kit/test_kit_panels.py`, marked `omniverse`: figures match `RecordedSource` at sampled times; occupancy has 6 decimal places; a crane's color changes at the recorded time; and after the jump to the highest backlog on `samples/replay/overloaded-warehouse.yaml`, playback is paused, time equals `reported.first_backlog_peak_s`, and the backlog shown equals `reported.backlog_orders.max_in_window` (SC-006)
+- [X] T030 [P] [US2] Write failing tests in `tests/omniverse/test_core_picking.py`, following `src/highbay_sim/viewer/picking.js` and `tests/viewer/test_picking.py`: the first occupied cell along a ray seen through empty cells, the nearest cell with none occupied, and no result for a ray that misses all racks. Add a comparison with `picking.js` at sampled rays to `tests/viewer/test_core_parity.py`
+- [X] T031 [US2] Write failing tests in `tests/omniverse/test_core_reported.py`, without Kit: for every warehouse and scenario pair in `tests/data/reference_results.json`, the state at `reported.first_backlog_peak_s` has a total backlog equal to `reported.backlog_orders.max_in_window` (SC-006). Also write failing tests in `tests/omniverse_kit/test_kit_panels.py`, marked `omniverse`: figures match `RecordedSource` at sampled times; occupancy has 6 decimal places; a crane's color changes at the recorded time; and after the jump to the highest backlog on `samples/replay/overloaded-warehouse.yaml`, playback is paused, time equals `reported.first_backlog_peak_s`, and the backlog shown equals `reported.backlog_orders.max_in_window` (SC-006)
 
 ### Implementation for User Story 2
 
-- [ ] T032 [US2] Implement `CORE/picking.py` (depends on T030)
-- [ ] T033 [US2] Extend `EXT/highbay/replay/window.py` with all figures, the run's identification, the legend, and the jump to the highest backlog, per `contracts/application.md`. Run T031, and make it pass
-- [ ] T034 [US2] First try getting a click and camera ray from the viewport in Kit 110, in a small script. **This is the risk named in `research.md`, "Selection"**. If it works, add selection to `EXT/highbay/replay/extension.py` using `CORE/picking.py`, with crane boxes tested first, and the same rules as `contracts/application.md`. If it does not, add the fallback from `research.md`: a list of cranes and entry fields for a location. Record the outcome in `research.md`
-- [ ] T035 [US2] Show selection details in `EXT/highbay/replay/window.py` through `StateSource.cell` and `StateSource.load`, including the order served and "initial stock" where it applies, with an outline at the selected object
-- [ ] T036 [US2] Run `quickstart.md` S5 by hand, comparing with the browser viewer for the same selection at the same time
+- [X] T032 [US2] Implement `CORE/picking.py` (depends on T030)
+- [X] T033 [US2] Extend `EXT/highbay/replay/window.py` with all figures, the run's identification, the legend, and the jump to the highest backlog, per `contracts/application.md`. Run T031, and make it pass
+- [X] T034 [US2] First try getting a click and camera ray from the viewport in Kit 110, in a small script. **This is the risk named in `research.md`, "Selection"**. If it works, add selection to `EXT/highbay/replay/extension.py` using `CORE/picking.py`, with crane boxes tested first, and the same rules as `contracts/application.md`. If it does not, add the fallback from `research.md`: a list of cranes and entry fields for a location. Record the outcome in `research.md`
+- [X] T035 [US2] Show selection details in `EXT/highbay/replay/window.py` through `StateSource.cell` and `StateSource.load`, including the order served and "initial stock" where it applies, with an outline at the selected object
+- [X] T036 [US2] Run `quickstart.md` S5 by hand, comparing with the browser viewer for the same selection at the same time
 
 **Checkpoint**: Stories 1 and 2 work, and figures match the reported values.
 

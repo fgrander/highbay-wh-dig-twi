@@ -34,6 +34,17 @@ class LoadUnit:
 
 
 @dataclass(frozen=True, slots=True)
+class OrderDetails:
+    order_id: str
+    type: str
+    arrival_s: float | None
+    start_s: float | None
+    completion_s: float | None
+    location: Location | None
+    end: str | None
+
+
+@dataclass(frozen=True, slots=True)
 class CellDetails:
     location: Location
     state: str
@@ -99,3 +110,5 @@ class StateSource(Protocol):
     def cell(self, location: Location) -> CellDetails: ...
 
     def load(self, key: str) -> LoadUnit | None: ...
+
+    def order(self, index: int) -> OrderDetails: ...

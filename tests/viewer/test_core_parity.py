@@ -7,10 +7,13 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from playwright.sync_api import Page
 
 from conftest import SAMPLES, Modules, replay_data
+from highbay.replay.core.display_text import crane_details, load_details
 from highbay.replay.core.layout import create_layout
-from highbay.replay.core.recorded_source import RecordedSource
+from highbay.replay.core.picking import pick_cell
+from highbay.replay.core.recorded_source import RecordedSource, open_recording
 from highbay_sim.cli import main
 
 TOLERANCE_M = 0.01
@@ -137,3 +140,76 @@ def test_layout_matches_the_browser(modules: Modules, write_run: Callable[..., P
         actual = layout.cell_box(tuple(location))
         assert list(actual.center) == pytest.approx(box["center"])
         assert list(actual.size) == pytest.approx(box["size"])
+
+
+def test_picking_matches_the_browser(modules: Modules, write_run: Callable[..., Path]) -> None:
+    data = replay_data(write_run(SAMPLES / "small-warehouse.yaml", SAMPLES / "daily-scenario.yaml"))
+    definition = data["warehouse"]["layout"]
+    layout = create_layout(definition)
+    bounds = layout.bounds()
+    occupied = [row[:4] for row in data["initial_stock"]]
+    generator = random.Random(1)
+    rays = []
+    for _ in range(SAMPLE_COUNT):
+        target = [
+            generator.uniform(low, high) for low, high in zip(bounds.min, bounds.max, strict=True)
+        ]
+        origin = [generator.uniform(-100.0, 200.0) for _ in range(3)]
+        rays.append([origin, [end - start for start, end in zip(origin, target, strict=True)]])
+
+    expected = modules.run(
+        "const { createLayout } = await imports('layout.js');"
+        "const { pickCell } = await imports('picking.js');"
+        "const [definition, rays, occupied] = args;"
+        "const layout = createLayout(definition);"
+        "const stored = new Set(occupied.map((location) => location.join('-')));"
+        "return rays.map(([origin, direction]) => pickCell(layout, { origin, direction },"
+        " (location) => stored.has(location.join('-'))));",
+        definition,
+        rays,
+        occupied,
+    )
+
+    stored = {tuple(location) for location in occupied}
+    for (origin, direction), cell in zip(rays, expected, strict=True):
+        found = pick_cell(layout, tuple(origin), tuple(direction), stored.__contains__)
+        assert found == (tuple(cell) if cell else None)
+
+
+def details_in_browser(page: Page) -> list[str]:
+    return page.evaluate(
+        "[...document.querySelectorAll('#details > div')].map((row) => row.textContent)"
+    )
+
+
+def test_figures_and_details_match_the_browser_at_the_peak(
+    page: Page, serve: Callable[[Path], str], write_run: Callable[..., Path]
+) -> None:
+    run = write_run(
+        SAMPLES / "replay" / "overloaded-warehouse.yaml", SAMPLES / "replay" / "busy-scenario.yaml"
+    )
+    source = open_recording(run)
+    page.goto(serve(run / "replay.json"))
+    page.wait_for_function("window.highbayViewer !== undefined")
+    page.evaluate("window.highbayViewer.ready")
+    page.click("#go-to-peak")
+    page.evaluate("window.highbayViewer.renderNow()")
+
+    time_s = page.evaluate("window.highbayViewer.time_s")
+    state = source.state_at(time_s)
+    assert page.inner_text("#figure-backlog") == str(state.backlog.total)
+    assert page.inner_text("#figure-occupancy") == f"{state.occupancy:.6f}"
+
+    position = page.evaluate("window.highbayViewer.craneScreenPosition(1)")
+    page.mouse.click(*position)
+    assert page.evaluate("window.highbayViewer.selection") == {"kind": "crane", "aisle": 1}
+    assert details_in_browser(page) == crane_details(source, state, 1)
+
+    stored = page.evaluate("window.highbayViewer.storedLoadUnits()")
+    position = page.evaluate(
+        "(location) => window.highbayViewer.cellScreenPosition(location)", stored[0]["location"]
+    )
+    page.mouse.click(*position)
+    selection = page.evaluate("window.highbayViewer.selection")
+    assert selection["kind"] == "load"
+    assert details_in_browser(page) == load_details(source, selection["key"])

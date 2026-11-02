@@ -10,6 +10,8 @@ from typing import Any
 from .state_source import Location
 
 BLOCK_GAP_SHARE = 0.1
+LOAD_SIZE_SHARE = 0.85
+CRANE_THICKNESS_SHARE = 0.5
 
 Vector = tuple[float, float, float]
 
@@ -67,6 +69,44 @@ class Layout:
             ),
             size=(self.cell_length, self.cell_height, self.cell_width),
         )
+
+    def load_size(self) -> Vector:
+        return (
+            self.cell_length * LOAD_SIZE_SHARE,
+            self.cell_height * LOAD_SIZE_SHARE,
+            self.cell_width * LOAD_SIZE_SHARE,
+        )
+
+    def mast_size(self) -> Vector:
+        return (
+            self.cell_length * 0.12,
+            self.height,
+            self.cell_width * CRANE_THICKNESS_SHARE,
+        )
+
+    def platform_size(self) -> Vector:
+        return (
+            self.cell_length * 0.9,
+            self.cell_height * 0.1,
+            self.cell_width * CRANE_THICKNESS_SHARE * 1.3,
+        )
+
+    def carried_load_height(self) -> float:
+        """Returns the height of a carried load's center above the carriage."""
+        return self.load_size()[1] / 2 + self.cell_height * 0.05
+
+    def crane_boxes(
+        self, aisle: int, position: tuple[float, float], carrying: bool = False
+    ) -> list[Box]:
+        """Returns the boxes that a crane occupies, for selection."""
+        x, y, z = self.crane_world_position(aisle, position)
+        boxes = [
+            Box((x, self.height / 2, z), self.mast_size()),
+            Box((x, y, z), self.platform_size()),
+        ]
+        if carrying:
+            boxes.append(Box((x, y + self.carried_load_height(), z), self.load_size()))
+        return boxes
 
     def bounds(self) -> Bounds:
         return Bounds(

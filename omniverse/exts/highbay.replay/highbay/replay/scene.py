@@ -10,7 +10,7 @@ from typing import Any
 from pxr import Gf, Sdf, UsdGeom, Vt
 
 from . import appearance
-from .core.layout import create_layout
+from .core.layout import Vector, create_layout
 from .core.state_source import CellChanges, RunState, StateSource, WarehouseDescription
 
 WORLD = "/World"
@@ -18,6 +18,7 @@ LOADS = "/World/Loads"
 RACKS = "/World/Racks"
 CRANES = "/World/Cranes"
 CAMERA = "/World/Camera"
+SELECTION = "/World/Selection"
 TRANSFER_ROLES = ("inbound", "outbound")
 ENDS = ("left", "right")
 # Steep and nearly along the aisles, so that stored stock does not hide the cranes.
@@ -63,7 +64,7 @@ class WarehouseScene:
         UsdGeom.Xform.Define(stage, CRANES)
         for aisle in range(1, self.layout.aisle_count + 1):
             appearance.create_crane(stage, f"{CRANES}/Aisle_{aisle}", self.layout)
-        appearance.create_highlight(stage, f"{WORLD}/Selection")
+        appearance.create_highlight(stage, SELECTION, self.layout)
         self._build_camera()
 
         layer = stage.GetRootLayer()
@@ -72,6 +73,8 @@ class WarehouseScene:
         }
         self._invisible_spec = layer.GetAttributeAtPath(f"{LOADS}.invisibleIds")
         self._prototypes_spec = layer.GetAttributeAtPath(f"{LOADS}.protoIndices")
+        self._highlight_translate = layer.GetAttributeAtPath(f"{SELECTION}.xformOp:translate")
+        self._highlight_visibility = layer.GetAttributeAtPath(f"{SELECTION}.visibility")
         self._prototypes = [0] * self.layout.cell_count
         self._hidden = set(range(self.layout.cell_count))
 
@@ -151,6 +154,15 @@ class WarehouseScene:
         camera.CreateClippingRangeAttr(Gf.Vec2f(max(distance / 500, 0.01), distance * 20))
         view = Gf.Matrix4d().SetLookAt(eye, center, Gf.Vec3d(0.0, 1.0, 0.0))
         self.stage.GetPrimAtPath(CAMERA).GetAttribute("xformOp:transform").Set(view.GetInverse())
+
+    def set_highlight(self, point: Vector | None) -> None:
+        """Marks a 3D point as selected, or removes the mark when given None."""
+        with Sdf.ChangeBlock():
+            if point is None:
+                self._highlight_visibility.default = UsdGeom.Tokens.invisible
+            else:
+                self._highlight_translate.default = Gf.Vec3d(*point)
+                self._highlight_visibility.default = UsdGeom.Tokens.inherited
 
     def update(self, state: RunState, changes: CellChanges, source: StateSource) -> None:
         """Shows a state, writing only what changed, in one change to the stage."""

@@ -14,10 +14,14 @@ import omni.kit.app
 import omni.usd
 from omni.kit.viewport.utility import get_active_viewport
 
+from .core.display_text import cell_details, crane_details, load_details
+from .core.layout import Vector
+from .core.picking import Selection, select_at
 from .core.playback import Playback
 from .core.recorded_source import open_recording
-from .core.state_source import StateSource, StateSourceError
+from .core.state_source import RunState, StateSource, StateSourceError
 from .scene import CAMERA, WarehouseScene
+from .viewport_click import ViewportClick
 from .window import ReplayWindow
 
 RUN_FOLDER_SETTING = "/exts/highbay.replay/run_folder"
@@ -39,8 +43,10 @@ class ReplayController:
         self.playback: Playback | None = None
         self.scene: WarehouseScene | None = None
         self.message = ""
+        self.selection: Selection | None = None
         self._shown_time_s: float | None = None
         self._shown_playing = False
+        self._viewport_click: ViewportClick | None = None
         self.window = ReplayWindow(self)
         self._update_subscription = (
             omni.kit.app.get_app()
@@ -50,6 +56,7 @@ class ReplayController:
 
     def shutdown(self) -> None:
         self._update_subscription = None
+        self._viewport_click = None
         self.window.window.destroy()
 
     def _show_message(self, message: str) -> None:
@@ -76,13 +83,17 @@ class ReplayController:
         self.scene = WarehouseScene(context.get_stage(), description)
         self.source = source
         self.playback = Playback(source)
+        self.selection = None
         self._shown_time_s = None
         viewport = get_active_viewport()
         if viewport is not None:
             viewport.camera_path = CAMERA
         self._show_message("")
-        self.window.set_run_controls(True, source.can_move_backward)
-        self.window.show_run(folder, source.time_range())
+        self.window.set_run_controls(
+            True, source.can_move_backward, description.reported is not None
+        )
+        self.window.show_run(folder, description)
+        self._viewport_click = ViewportClick(self.select_along_ray)
         self._show_state()
 
     def _on_update(self, _event: Any) -> None:
@@ -111,6 +122,79 @@ class ReplayController:
         self.window.show_time_range(time_range)
         self.window.show_state(state, time_range[1])
         self._shown_time_s = time_s
+        self._show_selection(state)
+
+    def _show_selection(self, state: RunState) -> None:
+        if self.source is None or self.scene is None:
+            return
+        selection = self.selection
+        is_load = selection is not None and selection.kind == "load"
+        if is_load and self.source.load(selection.key) is None:  # type: ignore[arg-type,union-attr]
+            self.selection = None
+        self.scene.set_highlight(self._selection_point(state))
+        self.window.show_details(self._selection_details(state), self._carried_load(state))
+
+    def _selection_point(self, state: RunState) -> Vector | None:
+        selection = self.selection
+        if selection is None or self.scene is None or self.source is None:
+            return None
+        layout = self.scene.layout
+        if selection.kind == "crane":
+            return layout.crane_world_position(
+                selection.aisle, state.cranes[selection.aisle].position
+            )
+        if selection.kind == "cell":
+            return layout.cell_box(selection.location).center
+        load = self.source.load(selection.key)
+        if load is None:
+            return None
+        if load.location is not None:
+            return layout.cell_box(load.location).center
+        return layout.crane_world_position(load.crane, state.cranes[load.crane].position)
+
+    def _selection_details(self, state: RunState) -> list[str]:
+        selection = self.selection
+        if selection is None or self.source is None:
+            return []
+        if selection.kind == "crane":
+            return crane_details(self.source, state, selection.aisle)
+        if selection.kind == "cell":
+            return cell_details(self.source, selection.location)
+        return load_details(self.source, selection.key)
+
+    def _carried_load(self, state: RunState) -> str | None:
+        if self.selection is None or self.selection.kind != "crane":
+            return None
+        return state.cranes[self.selection.aisle].carrying
+
+    def select(self, selection: Selection | None) -> None:
+        self.selection = selection
+        if self.source is not None and self.playback is not None:
+            self._show_selection(self.source.state_at(self.playback.time_s))
+
+    def select_along_ray(self, origin: Vector, direction: Vector) -> None:
+        """Selects what a ray from the camera finds, or clears the selection if nothing."""
+        if self.source is None or self.playback is None or self.scene is None:
+            return
+        state = self.source.state_at(self.playback.time_s)
+        self.select(select_at(self.scene.layout, self.source, state, origin, direction))
+
+    def select_carried_load(self) -> None:
+        if self.selection is None or self.selection.kind != "crane":
+            return
+        if self.source is not None and self.playback is not None:
+            state = self.source.state_at(self.playback.time_s)
+            key = state.cranes[self.selection.aisle].carrying
+            if key is not None:
+                self.select(Selection("load", key=key))
+
+    def go_to_highest_backlog(self) -> None:
+        if self.source is None or self.playback is None:
+            return
+        reported = self.source.describe().reported
+        if reported is not None:
+            self.playback.pause()
+            self.playback.move_to(reported["first_backlog_peak_s"])
 
     def toggle_playing(self) -> None:
         if self.playback is None:

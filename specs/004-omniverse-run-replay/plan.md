@@ -81,9 +81,11 @@ omniverse/
         │   ├── motion.py          # Motion profile
         │   ├── layout.py          # Positions and sizes
         │   ├── playback.py        # Simulated clock
-        │   └── picking.py         # Cell from a selection ray
+        │   ├── picking.py         # Crane or cell from a selection ray
+        │   └── display_text.py    # Figures and details as text
         ├── appearance.py    # New: the only module that decides how objects look
         ├── scene.py         # New: builds and updates the USD scene
+        ├── viewport_click.py # New: a click in the viewport as a selection ray
         ├── window.py        # New: controls, figures, details, and errors
         └── extension.py     # New: connects the parts
 
