@@ -1,6 +1,6 @@
 [project]
 name = "highbay-sim"
-version = "0.3.0"
+version = "0.4.0"
 description = "Headless throughput simulation of a high-bay warehouse"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -30,16 +30,17 @@ packages = ["src/highbay_sim"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["tests"]
-addopts = "-ra"
+pythonpath = ["tests", "omniverse/exts/highbay.replay"]
+addopts = "-ra -m 'not omniverse'"
 markers = [
     "performance: measures performance targets",
     "viewer: runs in a headless browser",
+    "omniverse: runs in Omniverse Kit, and only on request with -m omniverse",
 ]
 
 [tool.ruff]
 line-length = 100
-src = ["src", "tests"]
+src = ["src", "tests", "omniverse/exts/highbay.replay"]
 extend-exclude = [".specify", "specs"]
 
 [tool.ruff.lint]
@@ -47,5 +48,8 @@ select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
 
 [tool.mypy]
 strict = true
-files = ["src"]
+files = ["src", "omniverse/exts/highbay.replay/highbay/replay/core"]
+mypy_path = ["src", "omniverse/exts/highbay.replay"]
+namespace_packages = true
+explicit_package_bases = true
 plugins = ["pydantic.mypy"]

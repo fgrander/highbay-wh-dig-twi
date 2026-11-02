@@ -1,0 +1,14 @@
+[package]
+version = "0.1.0"
+title = "Highbay Replay"
+description = "Replays a recorded warehouse run in RTX rendering."
+category = "Simulation"
+
+[dependencies]
+"omni.kit.uiapp" = {}
+"omni.kit.viewport.utility" = {}
+"omni.ui" = {}
+"omni.usd" = {}
+
+[[python.module]]
+name = "highbay.replay.extension"

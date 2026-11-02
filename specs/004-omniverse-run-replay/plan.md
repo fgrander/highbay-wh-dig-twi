@@ -69,7 +69,7 @@ specs/004-omniverse-run-replay/
 omniverse/
 ├── setup.ps1                # New: installs Kit from the fixed template commit
 ├── run-replay.ps1           # New: opens a run folder in the application
-├── highbay.replay.kit       # New: the application definition, with data collection off
+├── highbay.replay.app.kit       # New: the application definition, with data collection off
 └── exts/highbay.replay/
     ├── README.md            # New: how to replace a look
     ├── config/extension.toml

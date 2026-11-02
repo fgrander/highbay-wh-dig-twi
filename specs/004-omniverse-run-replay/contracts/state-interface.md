@@ -14,6 +14,7 @@ This is the only way that run data reaches the scene and the display (FR-012). I
 | `can_move_backward` | Boolean | Whether times before the current one can be requested |
 | `state_at(time_s)` | Run state | The state at a time within the range, as in [data-model.md](../data-model.md) |
 | `take_changes()` | Changed cells | Cells whose content changed since the last call, or a flag that all cells must be redrawn |
+| `stored_load_units()` | Load units | All load units in cells, in location order, for redrawing all cells |
 | `cell(location)` | Cell details | Current state and load unit of one cell |
 | `load(key)` | Load unit details | A carried or stored load unit, or nothing if it no longer exists |
 

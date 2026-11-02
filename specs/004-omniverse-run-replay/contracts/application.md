@@ -66,7 +66,7 @@ The application writes nothing to the run folder or to the repository. Kit keeps
 
 ## Data collection
 
-`highbay.replay.kit` sets `telemetry.enableAnonymousData = false`.
+`highbay.replay.app.kit` sets `telemetry.enableAnonymousData = false`.
 
 ## Test mode
 

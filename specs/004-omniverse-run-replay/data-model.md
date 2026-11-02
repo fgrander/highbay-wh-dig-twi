@@ -42,13 +42,13 @@ Details for a selected cell or load unit are given on request: location, cell st
 
 | Prim path | Type | Content |
 |---|---|---|
-| `/World/Floor` | Mesh | Below the warehouse |
+| `/World/Floor` | Cube | Below the warehouse |
 | `/World/Dome`, `/World/Sun` | Lights | Fixed lighting |
 | `/World/Racks` | PointInstancer | Uprights and beams |
 | `/World/Loads` | PointInstancer | One instance per cell, one prototype per article color |
 | `/World/Cranes/Aisle_<n>` | Xform | Moves along the aisle, with a mast |
 | `/World/Cranes/Aisle_<n>/Carriage` | Xform | Moves up the mast, with its carried load unit |
-| `/World/TransferPoints/Aisle_<n>_<end>_<role>` | Mesh | Marker at an aisle end, with the role's color |
+| `/World/TransferPoints/Aisle_<n>_<end>_<role>` | Cube | Marker at an aisle end, with the role's color |
 | `/World/Camera` | Camera | The default view |
 | `/World/Selection` | Xform | Outline at the selected object, hidden with no selection |
 
