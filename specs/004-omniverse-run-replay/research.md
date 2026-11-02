@@ -59,6 +59,12 @@ All targets are met. Kit otherwise fits the viewport to its frame, so the test s
 
 Moving to a time on the planning target is close to 1 second, as moving backward applies all events again. SC-005 only sets a limit for the small sample.
 
+## Intermittent test failure
+
+`tests/viewer/test_replay_ui.py::test_pause_stops_time` failed in setup in one of five logged runs of the whole suite, as the browser viewer did not start within 30 seconds. A second run in the same series had one error whose name was not kept. This test and `viewer_server.py` have not changed in this feature, and it is probably the failure that was seen once after feature 002, whose name was not recorded.
+
+The cause is not known. A small connection queue in the viewer's server was suspected, but 150 loads with a queue of 5 and 150 with a queue of 128 all started. Nothing has been changed because of it. It is open whether a planner can meet this as a viewer that stays blank until the page is reloaded.
+
 ## Closing Kit
 
 - **Finding**: After `app.post_quit(0)`, Kit did not end within 45 seconds in any of four runs, with or without a window, and with `--/app/fastShutdown=true` too. Runs ended by a watchdog calling `os._exit` left no process behind. The cause is unknown.

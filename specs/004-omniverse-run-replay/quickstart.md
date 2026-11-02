@@ -7,7 +7,7 @@ Validation scenarios for this feature. Run all commands from the repository root
 ```text
 uv sync
 uv run playwright install chromium
-omniverse/setup.ps1
+powershell -ExecutionPolicy Bypass -File omniverse/setup.ps1
 uv run highbay-sim run samples/small-warehouse.yaml samples/daily-scenario.yaml --output out/small --replay
 uv run highbay-sim run samples/small-warehouse.yaml samples/daily-scenario.yaml --output out/small-stepped --replay --time-stepped
 uv run highbay-sim run samples/replay/overloaded-warehouse.yaml samples/replay/busy-scenario.yaml --output out/overloaded --replay
@@ -37,7 +37,7 @@ uv run --isolated --python 3.12 pytest tests/omniverse
 ## S3: Replay a run (User Story 1, manual)
 
 ```text
-omniverse/run-replay.ps1 out/small
+powershell -ExecutionPolicy Bypass -File omniverse/run-replay.ps1 out/small
 ```
 
 **Expected**: On a later start, it takes under 60 seconds with a stopwatch from the command to playing the run (SC-001). The warehouse appears with racks, cranes, stock, and transfer points in RTX rendering. Play, pause, restart, each speed, and the time slider work. Moving backward and forward to one time shows the same scene. The view can be moved freely, and **Default view** shows the whole warehouse again (FR-015).
@@ -53,7 +53,7 @@ Close the window from S3.
 ## S5: Understand a run (User Story 2, SC-006)
 
 ```text
-omniverse/run-replay.ps1 out/overloaded
+powershell -ExecutionPolicy Bypass -File omniverse/run-replay.ps1 out/overloaded
 ```
 
 Choose **Go to highest backlog**. Click a crane, a load unit, and an empty cell.

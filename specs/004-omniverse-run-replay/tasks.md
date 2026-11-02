@@ -143,10 +143,10 @@ description: "Task list for the Omniverse run replay"
 **Purpose**: Performance proof, documentation, and final validation
 
 - [X] T041 Write `tests/performance/test_omniverse_performance.py`, marked `performance` and `omniverse`, with the whole warehouse in view at 1920×1080, the frame limiter and eco mode off, and a run playing at 600×: SC-003 on the small sample, SC-004 on the planning target from `tests/performance/write_planning_target.py`, and SC-005 at 20 random times on a one-day small sample. Replace the "Limits of this measurement" and "Not measured" notes in `research.md` with the results. If a target is missed, report it to the project owner rather than changing the target
-- [ ] T042 [P] Update `README.md`: the Omniverse replay, its graphics requirements, `setup.ps1`, license terms, data collection being off, `run-replay.ps1`, and that Kit tests run only with `-m omniverse`, plus a link to `specs/004-omniverse-run-replay/contracts/application.md`. Change the sentence that names Omniverse as a later feature. Add a screenshot in `docs/media/` from T027
-- [ ] T043 [P] Add a look-replacement section to `EXT/README.md`, and confirm that it is enough to do `quickstart.md` S8 by hand
-- [ ] T044 Run `quickstart.md` S1 with Kit's folder renamed, and confirm that `omniverse` tests are deselected by default and skipped with `-m omniverse`, and that all others pass, including reference hashes (SC-008)
-- [ ] T045 Run `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy`, and all tests, including `uv run pytest -m omniverse`
+- [X] T042 [P] Update `README.md`: the Omniverse replay, its graphics requirements, `setup.ps1`, license terms, data collection being off, `run-replay.ps1`, and that Kit tests run only with `-m omniverse`, plus a link to `specs/004-omniverse-run-replay/contracts/application.md`. Change the sentence that names Omniverse as a later feature. Add a screenshot in `docs/media/` from T027
+- [X] T043 [P] Add a look-replacement section to `EXT/README.md`, and confirm that it is enough to do `quickstart.md` S8 by hand
+- [X] T044 Run `quickstart.md` S1 with Kit's folder renamed, and confirm that `omniverse` tests are deselected by default and skipped with `-m omniverse`, and that all others pass, including reference hashes (SC-008)
+- [X] T045 Run `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy`, and all tests, including `uv run pytest -m omniverse`
 - [ ] T046 Run `quickstart.md` S7 and S10, timing S10 on a fresh clone in a new folder (SC-009). Use a new Kit folder, and have the project owner confirm the license prompt there, as nobody else may accept it
 
 ---
