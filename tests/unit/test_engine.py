@@ -92,6 +92,35 @@ def test_retrieval_cycle_steps() -> None:
     assert retrieved.completion_s == pytest.approx(64.0)
 
 
+def test_movements_record_their_start_and_target_positions() -> None:
+    record = run(
+        warehouse(full_except((1, 1, 3, 2))),
+        [(0.0, "storage", "A"), (30.0, "retrieval", "A")],
+    )
+    movements = [
+        (event.order_id, event.activity, event.start_position, event.target_position)
+        for event in record.events
+        if event.kind == "activity_started" and event.activity != "handling"
+    ]
+    assert movements == [
+        ("O000001", "moving_empty", (0.0, 0.0), (0.0, 0.0)),
+        ("O000001", "moving_loaded", (0.0, 0.0), (10.0, 3.0)),
+        ("O000002", "moving_empty", (10.0, 3.0), (10.0, 3.0)),
+        ("O000002", "moving_loaded", (10.0, 3.0), (20.0, 0.0)),
+    ]
+
+
+def test_only_movements_have_positions() -> None:
+    record = run(warehouse(), [(0.0, "storage", "A")])
+    others = [
+        event
+        for event in record.events
+        if event.kind != "activity_started" or event.activity == "handling"
+    ]
+    assert others
+    assert all(e.start_position is None and e.target_position is None for e in others)
+
+
 def test_load_events_name_the_cell_only_when_a_cell_is_involved() -> None:
     record = run(
         warehouse(full_except((1, 1, 3, 2))),

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Warehouse replay</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="style.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./vendor/three.module.min.js"
+        }
+      }
+    </script>
+    <script type="module" src="main.js"></script>
+  </head>
+  <body>
+    <div id="view"></div>
+
+    <aside id="side">
+      <section>
+        <h2>Run</h2>
+        <div id="run-identification"></div>
+      </section>
+      <section>
+        <h2>Figures</h2>
+        <dl class="figures">
+          <dt>Period</dt>
+          <dd id="figure-window"></dd>
+          <dt>Backlog</dt>
+          <dd id="figure-backlog"></dd>
+          <dt>Waiting for a cell</dt>
+          <dd id="figure-waiting"></dd>
+          <dt>Occupancy</dt>
+          <dd id="figure-occupancy"></dd>
+          <dt>Orders completed</dt>
+          <dd id="figure-completed"></dd>
+          <dt>Orders unfulfillable</dt>
+          <dd id="figure-unfulfillable"></dd>
+        </dl>
+        <button id="go-to-peak" type="button">Go to highest backlog</button>
+        <h2>Backlog per aisle</h2>
+        <ul id="figure-per-aisle" class="per-aisle"></ul>
+      </section>
+      <section>
+        <h2>Selection</h2>
+        <div id="details"></div>
+      </section>
+      <section>
+        <h2>Articles</h2>
+        <ul id="legend" class="legend"></ul>
+      </section>
+      <section>
+        <h2>Cranes</h2>
+        <ul id="crane-legend" class="legend"></ul>
+      </section>
+    </aside>
+
+    <footer id="controls">
+      <button id="play" type="button">Play</button>
+      <button id="restart" type="button">Restart</button>
+      <input id="time-slider" type="range" min="0" max="1" step="any" value="0" aria-label="Simulated time" />
+      <span id="time-label"></span>
+      <label>Speed <select id="speed"></select></label>
+      <button id="default-view" type="button">Default view</button>
+    </footer>
+
+    <div id="benchmark" role="status" hidden></div>
+    <div id="error" role="alert" hidden></div>
+  </body>
+</html>

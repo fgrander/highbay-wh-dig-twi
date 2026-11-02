@@ -139,6 +139,8 @@ class _Run:
         location: Location | None = None,
         activity: Activity | None = None,
         end_s: float | None = None,
+        start_position: Position | None = None,
+        target_position: Position | None = None,
     ) -> None:
         event = SimulationEvent(
             self._now,
@@ -150,6 +152,8 @@ class _Run:
             location,
             activity,
             end_s,
+            start_position,
+            target_position,
         )
         self._events.append(event)
         if self._on_event is not None:
@@ -231,7 +235,15 @@ class _Run:
         assert crane.order is not None
         step = crane.steps[0]
         end_s = self._now + step.duration_s
-        self._emit("activity_started", crane.order, crane.order.location, step.activity, end_s)
+        self._emit(
+            "activity_started",
+            crane.order,
+            crane.order.location,
+            step.activity,
+            end_s,
+            None if step.position is None else crane.position,
+            step.position,
+        )
         self._at(end_s, crane)
 
     def _finish_step(self, crane: _Crane) -> None:

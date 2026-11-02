@@ -1,0 +1,13 @@
+# Sample scenario with more storage orders than the crane of aisle 1 can handle.
+# Values are illustrative.
+schema_version: 1
+name: busy-scenario
+seed: 7
+duration_s: 3600
+warmup_s: 300
+generated:
+  orders_per_hour: 150
+  storage_share: 0.8
+  article_weights:
+    oak-panel-18mm: 1
+    paper-a4-80g: 3

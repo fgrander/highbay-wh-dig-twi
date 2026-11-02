@@ -1,6 +1,6 @@
 [project]
 name = "highbay-sim"
-version = "0.1.0"
+version = "0.2.0"
 description = "Headless throughput simulation of a high-bay warehouse"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -15,6 +15,7 @@ highbay-sim = "highbay_sim.cli:main"
 [dependency-groups]
 dev = [
     "mypy>=1.13",
+    "playwright>=1.50",
     "pytest>=8.3",
     "ruff>=0.8",
     "types-PyYAML>=6.0",
@@ -31,7 +32,10 @@ packages = ["src/highbay_sim"]
 testpaths = ["tests"]
 pythonpath = ["tests"]
 addopts = "-ra"
-markers = ["performance: measures SC-004 timing"]
+markers = [
+    "performance: measures performance targets",
+    "viewer: runs in a headless browser",
+]
 
 [tool.ruff]
 line-length = 100
