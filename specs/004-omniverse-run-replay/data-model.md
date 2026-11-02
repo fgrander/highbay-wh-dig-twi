@@ -50,6 +50,7 @@ Details for a selected cell or load unit are given on request: location, cell st
 | `/World/Cranes/Aisle_<n>/Carriage` | Xform | Moves up the mast, with its carried load unit |
 | `/World/TransferPoints/Aisle_<n>_<end>_<role>` | Mesh | Marker at an aisle end, with the role's color |
 | `/World/Camera` | Camera | The default view |
+| `/World/Selection` | Xform | Outline at the selected object, hidden with no selection |
 
 Sizes and positions follow `layout.js`, with x along the aisle, y up, and z across aisles.
 

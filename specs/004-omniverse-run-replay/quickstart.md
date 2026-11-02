@@ -23,13 +23,13 @@ On a computer without Kit, or with its folder renamed:
 uv run pytest
 ```
 
-**Expected**: All tests pass, and tests that need Kit are reported as skipped. Reference hashes confirm that results are unchanged.
+**Expected**: All tests pass, and tests that need Kit are deselected. With `uv run pytest -m omniverse`, they are reported as skipped. Reference hashes confirm that results are unchanged.
 
 ## S2: Logic matches the browser viewer (SC-002)
 
 ```text
 uv run pytest tests/omniverse tests/viewer -k "omniverse or parity"
-uv run --python 3.12 pytest tests/omniverse
+uv run --isolated --python 3.12 pytest tests/omniverse
 ```
 
 **Expected**: At 100 sampled times from both simulation modes, crane positions differ by no more than 1 cm, and every load unit's location matches.
@@ -40,7 +40,7 @@ uv run --python 3.12 pytest tests/omniverse
 omniverse/run-replay.ps1 out/small
 ```
 
-**Expected**: Within 60 seconds on later starts, the warehouse appears with racks, cranes, stock, and transfer points in RTX rendering. Play, pause, restart, each speed, and the time slider work. Moving backward and forward to one time shows the same scene.
+**Expected**: On a later start, it takes under 60 seconds with a stopwatch from the command to playing the run (SC-001). The warehouse appears with racks, cranes, stock, and transfer points in RTX rendering. Play, pause, restart, each speed, and the time slider work. Moving backward and forward to one time shows the same scene. The view can be moved freely, and **Default view** shows the whole warehouse again (FR-015).
 
 Repeat with `out/small-stepped`.
 
@@ -58,7 +58,7 @@ omniverse/run-replay.ps1 out/overloaded
 
 Choose **Go to highest backlog**. Click a crane, a load unit, and an empty cell.
 
-**Expected**: The backlog shown equals `backlog_orders.max_in_window` in `result.json`, and the details match the browser viewer for the same selection at the same time.
+**Expected**: The backlog shown equals `metrics.backlog_orders.max_in_window` in `result.json`, and the details match the browser viewer for the same selection at the same time.
 
 ## S6: Nothing is changed (FR-010)
 
@@ -70,7 +70,7 @@ Record file hashes of `out/small` before S3 and compare them afterwards.
 
 Open a folder without `replay.json`, one with a damaged file, and one with a `format_version` of 999.
 
-**Expected**: Each shows a message naming the file and problem, with no partial scene.
+**Expected**: Each shows a message naming the file and problem, with no partial scene. With a run already open, that run stays open and unchanged. Opening a valid folder then replaces it, paused at time 0.
 
 ## S8: State interface and looks (User Story 3, SC-007)
 

@@ -54,8 +54,8 @@ The frame limiter and eco mode stay at Kit's defaults in normal use. The tests s
 
 ## State interface
 
-- **Decision**: One small interface with four operations: describe the warehouse, tell the available time range, give the state at a time, and give the cells changed since the last call. Sources declare whether they can move backward. See [contracts/state-interface.md](contracts/state-interface.md).
-- **Rationale**: A live source can provide the same data with only the current time available, and display code only uses the interface. A scripted source proves this (SC-007). There is no write operation, which matches Principle IV.
+- **Decision**: One small interface: describe the warehouse, tell the available time range, give the state at a time, give the cells changed since the last call, and give details of one cell or load unit. Sources declare whether they can move backward and whether their time range is final. See [contracts/state-interface.md](contracts/state-interface.md).
+- **Rationale**: A live source can provide the same data with only the current time available, and display code only uses the interface. A scripted source with a growing time range and no way to move backward proves this (SC-007). There is no write operation, which matches Principle IV.
 - **Alternatives considered**: Using the plant model's signal list directly would limit the display to time-stepped runs, and signals have no backlog or order data.
 
 ## Selection
@@ -71,10 +71,10 @@ The frame limiter and eco mode stay at Kit's defaults in normal use. The tests s
 
 ## Tests and Kit's Python
 
-- **Decision**: Project tests import only `core/` through a new pytest path. They run under Python 3.14 and, in one documented command, under 3.12. Kit tests start the real application with a test script and read a results file.
+- **Decision**: Project tests import only `core/` through a new pytest path. They run under Python 3.14 and, in one documented command with `uv run --isolated --python 3.12`, under 3.12, which leaves the project's environment alone and downloads Python 3.12 on first use. Kit tests start the real application with a test script and read a results file. They run only on request with `-m omniverse`, because they take minutes and occupy the graphics card.
 - **Rationale**: Normal test runs stay fast and need no graphics card, and SC-008 stays true. Running under 3.12 catches syntax that Kit could not load.
 - **Software version**: Goes to 0.4.0 as with earlier features. It only changes the recorded version in results, which existing reference tests leave out.
 
 ## Data collection
 
-- **Decision**: `highbay.replay.kit` sets `telemetry.enableAnonymousData = false`, as the project owner decided. The README states this.
+- **Decision**: `highbay.replay.kit` sets `telemetry.enableAnonymousData = false`, as the project owner decided. `setup.ps1` sets the same value in the template's generated application, so that no application in the setup collects data. The README states this.

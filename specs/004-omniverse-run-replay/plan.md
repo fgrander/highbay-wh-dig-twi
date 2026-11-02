@@ -16,7 +16,7 @@ Replay an existing `replay.json` in an NVIDIA Omniverse Kit application with RTX
 
 **Storage**: Reads `replay.json` only. The scene is held in memory, and no files are written.
 
-**Testing**: pytest, written test-first for the logic modules. Playwright compares the logic with the browser viewer's state. Scene and display code is tested in Kit, under a new `omniverse` marker that is skipped when Kit is not installed, with documented manual steps for what cannot be automated.
+**Testing**: pytest, written test-first for the logic modules. Playwright compares the logic with the browser viewer's state. Scene and display code is tested in Kit, under a new `omniverse` marker. These tests run only on request with `-m omniverse`, and are skipped when Kit is not installed, with documented manual steps for what cannot be automated.
 
 **Target Platform**: Windows 11 with an RTX 3080 class graphics card, for the Omniverse part only. The simulation and browser replay keep running without it.
 
@@ -35,7 +35,7 @@ Replay an existing `replay.json` in an NVIDIA Omniverse Kit application with RTX
 | Principle or rule | How this plan complies | Pre-design | Post-design |
 |---|---|---|---|
 | I. Simulation core independent of visualization | The extension only reads recorded data. The simulation imports nothing from it, and a test enforces this. Tests without Kit prove that the simulation works on its own. | PASS | PASS |
-| II. Reproducible simulation | No simulation code changes. Displayed state is a function of simulated time and recorded data, and it does not use the frame rate or the system clock. | PASS | PASS |
+| II. Reproducible simulation | No simulation code changes. Displayed state is a function of simulated time and recorded data, and it does not use the frame rate or the system clock. During playback, the system clock only decides how fast simulated time advances, as in the browser viewer. | PASS | PASS |
 | III. Credible throughput results | Figures shown are computed by the same rules as the browser viewer, or read from `reported`. A test compares them at sampled times. No new metric is added. | PASS | PASS |
 | IV. Live data as a later, pluggable option | All state enters through the state interface in [contracts/state-interface.md](contracts/state-interface.md). No live source is built, and the interface has no way to write. | PASS | PASS |
 | V. Test-first simulation logic | Logic modules are written test-first. Display code has tests in Kit where practical and otherwise documented manual steps in [quickstart.md](quickstart.md). | PASS | PASS |
@@ -71,6 +71,7 @@ omniverse/
 ├── run-replay.ps1           # New: opens a run folder in the application
 ├── highbay.replay.kit       # New: the application definition, with data collection off
 └── exts/highbay.replay/
+    ├── README.md            # New: how to replace a look
     ├── config/extension.toml
     └── highbay/replay/
         ├── core/            # New: standard library only, no Kit imports
@@ -87,6 +88,7 @@ omniverse/
         └── extension.py     # New: connects the parts
 
 tests/
+├── kit_runner.py            # New: finds and starts Kit for tests
 ├── omniverse/               # New: core logic, without Kit
 ├── viewer/                  # New: core logic compared with the browser viewer
 ├── omniverse_kit/           # New: scene and display in Kit, skipped without Kit

@@ -20,7 +20,7 @@ Clones `kit-app-template` at the fixed commit and builds it, by default in `C:\d
 omniverse/run-replay.ps1 RUN_FOLDER [-KitTemplateDir PATH]
 ```
 
-`RUN_FOLDER` is a folder with `replay.json`, as written by `highbay-sim run --replay`. The application can also start with no run, and a run can be chosen in its window. The script ends when the application closes.
+`RUN_FOLDER` is a folder with `replay.json`, as written by `highbay-sim run --replay`. The script passes it as the setting `/exts/highbay.replay/run_folder`. The application can also start with no run, and a run can be chosen in its window. The script ends when the application closes.
 
 ## Controls
 
@@ -28,7 +28,7 @@ These match [the browser viewer](../../002-3d-run-replay/contracts/viewer.md).
 
 | Control | Behavior |
 |---|---|
-| Open | Chooses a run folder |
+| Open | Chooses a run folder. The new run is checked first. If it is valid, it replaces any open run, paused at time 0. |
 | Play and pause | Starts or stops simulated time |
 | Restart | Goes to time 0 and pauses |
 | Time slider | Moves to the chosen time, covering the whole run |
@@ -54,7 +54,7 @@ Types are `crane_mast`, `crane_carriage`, `load_unit`, `rack_upright`, `rack_bea
 
 ## Errors
 
-The window shows a message, and no partial scene stays open, when:
+The window shows a message, and no partial scene is created, when the following apply. A run that is already open stays open and unchanged.
 
 - The folder has no `replay.json`, or the file cannot be read as JSON
 - `format_version` is not supported, naming the found and supported versions

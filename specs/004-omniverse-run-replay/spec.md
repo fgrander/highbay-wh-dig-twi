@@ -20,7 +20,7 @@ A planner has a recorded run, either event-based or time-stepped. They open it i
 
 **Acceptance Scenarios**:
 
-1. **Given** a recorded run from either simulation mode, **When** the planner opens it, **Then** the warehouse appears with one rack, bay, and level layout matching the warehouse definition, and with the stock from the start of the run.
+1. **Given** a recorded run from either simulation mode, **When** the planner opens it, **Then** the warehouse appears with the racks, bays, and levels of the warehouse definition, and with the stock from the start of the run.
 2. **Given** an open run, **When** the planner plays it, **Then** simulated time advances at the selected speed, and cranes move and load units appear, travel, and disappear as recorded.
 3. **Given** an open run, **When** the planner moves to any point in time, forwards or backwards, **Then** the scene shows the same state as if the run had been played up to that point.
 4. **Given** an open run, **When** the rendering frame rate changes, **Then** the state shown for a given simulated time stays the same.
@@ -75,7 +75,7 @@ A developer extending the twin connects a different state source to the visualiz
 - **FR-002**: System MUST generate the warehouse scene from the warehouse data of the recorded run, and MUST NOT hard-code any layout.
 - **FR-003**: The scene MUST show racks, cranes, load units, and transfer points as simple shapes, sized from the warehouse's dimensions, with RTX rendering.
 - **FR-004**: Users MUST be able to play, pause, and restart a run, move to any time in it, and change its speed from 1× to 3,600×.
-- **FR-005**: The state shown MUST depend only on the simulated time and the recorded data, and MUST NOT depend on frame rate, wall-clock time, or the order in which times were visited.
+- **FR-005**: The state shown MUST depend only on the simulated time and the recorded data, and MUST NOT depend on frame rate, wall-clock time, or the order in which times were visited. Wall-clock time may only decide how fast simulated time advances during playback.
 - **FR-006**: Crane motion between recorded events MUST follow the same motion profile as the browser replay.
 - **FR-007**: The display MUST show simulated time, the measurement window, crane activity, and backlog per aisle.
 - **FR-008**: Users MUST be able to select a crane or load unit and see its identity and current state.
