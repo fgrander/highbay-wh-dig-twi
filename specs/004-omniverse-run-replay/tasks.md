@@ -147,7 +147,7 @@ description: "Task list for the Omniverse run replay"
 - [X] T043 [P] Add a look-replacement section to `EXT/README.md`, and confirm that it is enough to do `quickstart.md` S8 by hand
 - [X] T044 Run `quickstart.md` S1 with Kit's folder renamed, and confirm that `omniverse` tests are deselected by default and skipped with `-m omniverse`, and that all others pass, including reference hashes (SC-008)
 - [X] T045 Run `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy`, and all tests, including `uv run pytest -m omniverse`
-- [ ] T046 Run `quickstart.md` S7 and S10, timing S10 on a fresh clone in a new folder (SC-009). Use a new Kit folder, and have the project owner confirm the license prompt there, as nobody else may accept it
+- [ ] T046 (Postponed on 2026-11-03 until a second computer or person sets up the project: SC-009 is unproven, as the setup has not run from an empty start.) Run `quickstart.md` S7 and S10, timing S10 on a fresh clone in a new folder (SC-009). Use a new Kit folder, and have the project owner confirm the license prompt there, as nobody else may accept it
 
 ---
 

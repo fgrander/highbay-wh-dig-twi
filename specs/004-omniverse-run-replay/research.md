@@ -109,3 +109,7 @@ Kit's viewport grid and light icon stay visible. Both can be switched off in the
 ## Test by hand
 
 On 2026-11-03, on the branch of feature 005, the project owner confirmed that the buttons, the time slider, the speed choice, and the mouse camera work in a visible window. S7 of feature 005's quickstart showed the simple shapes of this feature in a visible window too.
+
+## Setup from an empty start
+
+SC-009 is unproven. `omniverse/setup.ps1` has not run from an empty start, as Kit was already there, so the setup may depend on something only found on the project owner's computer. The feature was merged without this, and the check is to be done when a second computer or person sets up the project.

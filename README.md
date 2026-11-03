@@ -65,8 +65,6 @@ Objects are simple shapes for now. To use detailed models, change `src/highbay_s
 
 ## Omniverse replay
 
-![A crane in a full aisle in Omniverse, with stacks of particle boards and paper pallets](docs/media/omniverse-loads.jpg)
-
 A recorded run from either simulation mode can also be replayed in NVIDIA Omniverse with RTX rendering. It reads the same `replay.json` and changes no files. The simulation and the browser replay work without any of this.
 
 You need Windows and an NVIDIA RTX graphics card. RTX 3070 or better is NVIDIA's recommendation, and this project has been measured on an RTX 3080 with 10 GB. The setup downloads several gigabytes.
@@ -100,6 +98,12 @@ powershell -ExecutionPolicy Bypass -File omniverse/run-replay.ps1 out/real-size
 ```
 
 To the simulation, a load is always one article and one order, whole or split, so throughput figures count loads. This is why result files keep saying that multi-load handling is not modeled. The cells, crane, and stack heights of that sample are placeholders, so its results say nothing about a real warehouse yet.
+
+| Crane in an aisle | Paper pallet | A split stack of particle boards |
+|---|---|---|
+| ![A crane in an aisle](docs/media/omniverse-loads.jpg) | ![Paper pallet](docs/media/omniverse-paper.jpg) | ![A stack of particle boards with a cut](docs/media/omniverse-split-boards.jpg) |
+
+Videos: [a crane picking a load and traveling along its aisle](docs/media/omniverse-crane-in-aisle.mp4), and [the forks picking a split stack](docs/media/omniverse-split-stack-pick.mp4).
 
 To change sizes, definitions, or models, see [the extension's notes](omniverse/exts/highbay.replay/README.md). To connect another source of run state, such as a later live connection, see [the state interface](specs/004-omniverse-run-replay/contracts/state-interface.md). See also [the application contract](specs/004-omniverse-run-replay/contracts/application.md) and [its changes](specs/005-omniverse-crane-load-models/contracts/application.md).
 
