@@ -20,11 +20,12 @@ from .core.picking import Selection, select_at
 from .core.playback import Playback
 from .core.recorded_source import open_recording
 from .core.state_source import RunState, StateSource, StateSourceError
-from .scene import CAMERA, WarehouseScene
+from .scene import CAMERA, MODELS_DETAILED, WarehouseScene
 from .viewport_click import ViewportClick
 from .window import ReplayWindow
 
 RUN_FOLDER_SETTING = "/exts/highbay.replay/run_folder"
+MODELS_SETTING = "/exts/highbay.replay/models"
 FRAMES_BEFORE_FIRST_RUN = 10
 
 _controller: "ReplayController | None" = None
@@ -80,7 +81,8 @@ class ReplayController:
         description = source.describe()
         context = omni.usd.get_context()
         context.new_stage()
-        self.scene = WarehouseScene(context.get_stage(), description)
+        models = carb.settings.get_settings().get(MODELS_SETTING) or MODELS_DETAILED
+        self.scene = WarehouseScene(context.get_stage(), description, models)
         self.source = source
         self.playback = Playback(source)
         self.selection = None
@@ -140,7 +142,7 @@ class ReplayController:
             return None
         layout = self.scene.layout
         if selection.kind == "crane":
-            return layout.crane_world_position(
+            return self.scene.crane_highlight_point(
                 selection.aisle, state.cranes[selection.aisle].position
             )
         if selection.kind == "cell":
@@ -150,7 +152,7 @@ class ReplayController:
             return None
         if load.location is not None:
             return layout.cell_box(load.location).center
-        return layout.crane_world_position(load.crane, state.cranes[load.crane].position)
+        return self.scene.crane_highlight_point(load.crane, state.cranes[load.crane].position)
 
     def _selection_details(self, state: RunState) -> list[str]:
         selection = self.selection
@@ -177,7 +179,8 @@ class ReplayController:
         if self.source is None or self.playback is None or self.scene is None:
             return
         state = self.source.state_at(self.playback.time_s)
-        self.select(select_at(self.scene.layout, self.source, state, origin, direction))
+        shape = self.scene.crane_shape if self.scene.detailed else None
+        self.select(select_at(self.scene.layout, self.source, state, origin, direction, shape))
 
     def select_carried_load(self) -> None:
         if self.selection is None or self.selection.kind != "crane":

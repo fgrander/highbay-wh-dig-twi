@@ -10,7 +10,8 @@ import carb
 import carb.settings
 from pxr import Gf, Sdf, UsdGeom, UsdLux
 
-from .core.layout import Bounds, Layout, Vector
+from .core.crane_model import crane_carriage_usda, crane_mast_usda
+from .core.layout import RACK_MEMBER_THICKNESS_M, Bounds, Layout, Vector
 
 # Kept apart from the crane activity colors below, so that the two are not confused.
 ARTICLE_COLORS = (
@@ -35,11 +36,13 @@ OUTBOUND_COLOR = "#d35454"
 FLOOR_COLOR = "#e4e7ea"
 HIGHLIGHT_COLOR = "#ffd400"
 HIGHLIGHT_WIDTH_M = 0.08
-RACK_MEMBER_THICKNESS_M = 0.08
 FLOOR_THICKNESS_M = 0.1
 DOME_INTENSITY = 350.0
 SUN_INTENSITY = 400.0
 LOOK_SETTING = "/exts/highbay.replay/looks/"
+AISLE_LIGHT_INTENSITY = 5000.0
+AISLE_LIGHT_WIDTH_SHARE = 0.8
+AISLE_LIGHT_BELOW_TOP_M = 0.1
 
 look_warnings: list[str] = []
 
@@ -76,9 +79,7 @@ def _look_file(look: str | None) -> str | None:
     if usable:
         return str(file)
     warning = f"The look for {look} could not be loaded from {file}, so its simple shape is used."
-    if warning not in look_warnings:
-        look_warnings.append(warning)
-        carb.log_warn(warning)
+    _warn(warning)
     return None
 
 
@@ -109,12 +110,61 @@ def _box(
     return cube
 
 
+def _warn(warning: str) -> None:
+    if warning not in look_warnings:
+        look_warnings.append(warning)
+        carb.log_warn(warning)
+
+
+def _generated(
+    stage: Any, path: str, text: str, center: Vector, box_color: Gf.Vec3f, look: str
+) -> None:
+    """Copies a generated model to a path, unless a file replaces its type.
+
+    A copy leaves no reference to a temporary layer in the stage, so that a scene built from the
+    same data is the same.
+    """
+    if _look_file(look):
+        _warn(
+            f"The file for {look} replaces the crane part, but selection keeps its generated size."
+        )
+        _box(stage, path, (1.0, 1.0, 1.0), center, box_color, look)
+        return
+    layer = Sdf.Layer.CreateAnonymous(".usda")
+    layer.ImportFromString(text)
+    Sdf.CreatePrimInLayer(stage.GetRootLayer(), path)
+    Sdf.CopySpec(layer, "/Look", stage.GetRootLayer(), path)
+    model = UsdGeom.Xform.Define(stage, path)
+    model.AddTranslateOp().Set(Gf.Vec3d(*center))
+    UsdGeom.PrimvarsAPI(model).CreatePrimvar(
+        "displayColor", Sdf.ValueTypeNames.Color3fArray, UsdGeom.Tokens.constant
+    ).Set([box_color])
+
+
 def create_lights(stage: Any, dome_path: str, sun_path: str) -> None:
     UsdLux.DomeLight.Define(stage, dome_path).CreateIntensityAttr(DOME_INTENSITY)
     sun = UsdLux.DistantLight.Define(stage, sun_path)
     sun.CreateIntensityAttr(SUN_INTENSITY)
     sun.CreateAngleAttr(1.0)
     UsdGeom.Xformable(sun).AddRotateXYZOp().Set(Gf.Vec3f(-55.0, 30.0, 0.0))
+
+
+def create_aisle_light(stage: Any, path: str, layout: Layout, aisle: int) -> None:
+    """Creates a light along the top of an aisle, shining down into it."""
+    light = UsdLux.RectLight.Define(stage, path)
+    light.CreateWidthAttr(layout.length)
+    light.CreateHeightAttr(layout.aisle_width * AISLE_LIGHT_WIDTH_SHARE)
+    light.CreateIntensityAttr(AISLE_LIGHT_INTENSITY)
+    xformable = UsdGeom.Xformable(light)
+    xformable.AddTranslateOp().Set(
+        Gf.Vec3d(
+            layout.length / 2,
+            layout.height - AISLE_LIGHT_BELOW_TOP_M,
+            layout.aisle_center_z(aisle),
+        )
+    )
+    # A rectangular light shines along its -z, which this turns downward.
+    xformable.AddRotateXOp().Set(-90.0)
 
 
 def create_floor(stage: Any, path: str, bounds: Bounds) -> None:
@@ -160,22 +210,31 @@ def create_rack_prototypes(stage: Any, instancer_path: str, layout: Layout) -> t
     return upright, beam
 
 
-def create_crane(stage: Any, path: str, layout: Layout) -> None:
-    """Creates a crane: a mast that moves along the aisle, and a carriage that moves up it."""
+def create_crane(stage: Any, path: str, layout: Layout, detailed: bool = False) -> None:
+    """Creates a crane: columns that move along the aisle, and a carriage that moves up them."""
     idle = activity_color("idle")
     crane = UsdGeom.Xform.Define(stage, path)
     crane.AddTranslateOp().Set(Gf.Vec3d(0.0))
     center = (0.0, layout.height / 2, 0.0)
-    _box(stage, f"{path}/Mast", layout.mast_size(), center, idle, "crane_mast")
     carriage = UsdGeom.Xform.Define(stage, f"{path}/Carriage")
     carriage.AddTranslateOp().Set(Gf.Vec3d(0.0))
     platform = f"{path}/Carriage/Platform"
-    _box(stage, platform, layout.platform_size(), (0.0, 0.0, 0.0), idle, "crane_carriage")
+    if detailed:
+        _generated(stage, f"{path}/Mast", crane_mast_usda(layout), center, idle, "crane_mast")
+        _generated(
+            stage, platform, crane_carriage_usda(layout), (0.0, 0.0, 0.0), idle, "crane_carriage"
+        )
+        # At the height of a stored load, so that the forks fit below it.
+        carried_height = layout.cell_height / 2
+    else:
+        _box(stage, f"{path}/Mast", layout.mast_size(), center, idle, "crane_mast")
+        _box(stage, platform, layout.platform_size(), (0.0, 0.0, 0.0), idle, "crane_carriage")
+        carried_height = layout.carried_load_height()
     carried = _box(
         stage,
         f"{path}/Carriage/CarriedLoad",
         layout.load_size(),
-        (0.0, layout.carried_load_height(), 0.0),
+        (0.0, carried_height, 0.0),
         color(ARTICLE_COLORS[0]),
         "load_unit",
     )

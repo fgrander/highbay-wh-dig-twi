@@ -4,7 +4,7 @@ This costs the same at any warehouse size, and also finds empty cells, which hav
 """
 
 from bisect import insort
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from itertools import pairwise
 from typing import Protocol
@@ -19,6 +19,9 @@ class Selection:
     aisle: int | None = None
     location: Location | None = None
     key: str | None = None
+
+
+CraneShape = Callable[[int, CraneState], Iterable[Box]]
 
 
 class CellSource(Protocol):
@@ -119,21 +122,36 @@ def pick_cell(
 
 
 def pick_crane(
-    layout: Layout, cranes: Mapping[int, CraneState], origin: Vector, direction: Vector
+    layout: Layout,
+    cranes: Mapping[int, CraneState],
+    origin: Vector,
+    direction: Vector,
+    shape: CraneShape | None = None,
 ) -> int | None:
-    """Returns the aisle of the first crane that a ray hits, or None."""
+    """Returns the aisle of the first crane that a ray hits, or None.
+
+    A shape gives the boxes of a crane as shown, and by default the simple crane's are used.
+    """
     for aisle, crane in cranes.items():
-        boxes = layout.crane_boxes(aisle, crane.position, crane.carrying is not None)
+        if shape is not None:
+            boxes = shape(aisle, crane)
+        else:
+            boxes = layout.crane_boxes(aisle, crane.position, crane.carrying is not None)
         if any(_ray_hits_box(origin, direction, box) for box in boxes):
             return aisle
     return None
 
 
 def select_at(
-    layout: Layout, source: CellSource, state: RunState, origin: Vector, direction: Vector
+    layout: Layout,
+    source: CellSource,
+    state: RunState,
+    origin: Vector,
+    direction: Vector,
+    shape: CraneShape | None = None,
 ) -> Selection | None:
     """Returns what a ray selects: a crane, or otherwise a load unit, or otherwise a cell."""
-    aisle = pick_crane(layout, state.cranes, origin, direction)
+    aisle = pick_crane(layout, state.cranes, origin, direction, shape)
     if aisle is not None:
         return Selection("crane", aisle=aisle)
     location = pick_cell(

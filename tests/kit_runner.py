@@ -36,8 +36,13 @@ def run_kit_script(
     work_directory: Path,
     settings: list[str] | None = None,
     time_limit_s: float = DEFAULT_TIME_LIMIT_S,
+    models: str = "simple",
 ) -> dict[str, Any]:
-    """Runs a script in the windowless application, and returns the results that it wrote."""
+    """Runs a script in the windowless application, and returns the results that it wrote.
+
+    Tests use the simple shapes unless they ask for detailed models, which are the default for
+    people, so that a test states what it checks.
+    """
     directory = kit_directory()
     results_file = work_directory / "kit-results.json"
     arguments_file = work_directory / "kit-arguments.json"
@@ -54,6 +59,7 @@ def run_kit_script(
         str(directory / "extscache"),
         "--no-window",
         "--/app/fastShutdown=true",
+        f"--/exts/highbay.replay/models={models}",
         *(settings or []),
         "--exec",
         str(BOOTSTRAP),

@@ -119,9 +119,7 @@ This follows the story priorities, so that each step can be shown.
 
 ## Open Risks
 
-- **Light in a full aisle**: The intensity is not known yet, and may not be enough ([research.md](research.md)). SC-004 decides, and a light on each crane is the fallback.
-- **Status colors**: The strips may be too narrow for SC-004 and may have to become larger.
+- **Light in tall warehouses**: The intensity was judged at a height of 15 m only ([research.md](research.md)).
 - **Sharing prototypes between instancers**: Each crane's carried pair is planned to use the prototypes of `/World/Loads`, which is not measured yet. If Kit does not render this, each crane gets its own group of prototypes, or the carried pairs are placed by one instancer of their own.
 - **Performance**: The prototype had no racks or cranes. Only the performance tests with the full scene can prove SC-006.
-- **Stepped recordings**: The check that events end their handling steps was run only on an event-driven recording. A task checks it for stepped ones, and `RecordedSource` reports a recording where it fails.
 - **Real dimensions**: These are still missing, and may change forks, stacks, and whether the sample's stacks fit.

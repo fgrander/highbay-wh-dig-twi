@@ -12,6 +12,7 @@ from .state_source import Location
 BLOCK_GAP_SHARE = 0.1
 LOAD_SIZE_SHARE = 0.85
 CRANE_THICKNESS_SHARE = 0.5
+RACK_MEMBER_THICKNESS_M = 0.08
 
 Vector = tuple[float, float, float]
 
@@ -76,6 +77,10 @@ class Layout:
             self.cell_height * LOAD_SIZE_SHARE,
             self.cell_width * LOAD_SIZE_SHARE,
         )
+
+    def pair_base_height(self) -> float:
+        """Returns how far above a cell's floor the load in it starts."""
+        return (1 - LOAD_SIZE_SHARE) / 2 * self.cell_height
 
     def mast_size(self) -> Vector:
         return (

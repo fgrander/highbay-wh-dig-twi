@@ -4,7 +4,7 @@ The project owner decided on the crane's form, on pairs that always move togethe
 
 ## Facts checked in a recording
 
-Checked on one recording of the small sample warehouse, with 2,914 pick and set events. The stepped mode still has to be checked, by a task.
+Checked on recordings of the small sample warehouse in both modes, by `tests/omniverse/test_handling_in_recordings.py`.
 
 - Every `load_picked` and `load_set` event falls exactly on the end of its crane's latest `handling` activity. A recording therefore already tells what each handling step does, and where.
 - At all 1,458 handling steps at a cell, the crane stands exactly at x = (bay − 0.5) × cell length and y = (level − 1) × cell height. Its recorded lift position is the floor of the cell.
@@ -82,13 +82,15 @@ A sample image shows both stacks as readable, with individual boards and bands, 
 
 ## Aisle light
 
-- **Decision**: One rectangular light per aisle, along the top of the aisle and shining down, with a fixed share of the existing light. Its intensity is set in implementation against sample images of a full aisle.
-- **Rationale**: Its cost is low (see below), and the number of lights follows the number of aisles.
-- **Open risk**: So far the effect has only been seen in an aisle with mostly empty racks, where an intensity of 5,000 visibly lightens the shadows. A rack full of stock blocks more light, so the value is not yet known, and SC-004 decides it. If this light is not enough, a light moving with each crane is the next option.
+- **Decision**: One rectangular light per aisle, along the top of the aisle and shining down, at an intensity of 5,000.
+- **Rationale**: Its cost is low (see below), and the number of lights follows the number of aisles. Images along an aisle of the small sample's size, with 96% of its cells occupied, compared 0, 5,000, and 30,000. At 0, the crane and racks are dark, and at 30,000, stock and the crane's colors wash out. At 5,000, the crane and its color are clear.
+- **Limits**: This was judged only at the sample's height of 15 m. As the light is at the top of the aisle, a much taller warehouse will be darker at its floor, and the value may need to follow the height. Stock in these images is still the simple shape, and pale stacks may change how this looks.
 
-## Status colors
+## Activity color on whole columns
 
-- **Open risk**: The status strips on the columns are narrow, and did not stand out in the view along the aisle. SC-004 asks for the activity to be recognizable there, so implementation may have to make them wider, or to color larger parts.
+- **Decision**: The columns and the carriage's end frames have no material, so they show the activity color as a whole. The narrow status strips of the first model are removed.
+- **Rationale**: Looking along an aisle, only the outer side of one column can be seen, and the strips were on the sides facing the racks, where they could not be seen at all. With whole columns, each of the four activities can be told apart along a full aisle (SC-004, images in `images/`). Columns end below the top beam, as faces in the same place flickered when rendered.
+- **Alternatives considered**: Moving strips to the outer side leaves little to color next to the ladder.
 
 ## Measured performance
 
@@ -106,3 +108,7 @@ A prototype with 100,000 cells, 30% of them hidden, 8 pair prototypes each with 
 
 - **Decision**: In the default definitions, both types are 1.4 m long and 1.25 m wide, which fits in half of a sample cell (1.6 m by 1.5 m). A particle board stack is 30 boards of 19 mm, and a sheet stack 1000 sheets of 0.3 mm, for heights of 0.57 m and 0.30 m.
 - **Rationale**: Real boards of up to 2.8 m do not fit in half of these cells. These sizes are placeholders, as stated in the spec, and are changed only in the data file.
+
+## Open observation: the sky's color
+
+Across windowless Kit runs with the same settings, the background was either gray or black for a whole run: 3 runs of the same recording gave gray once and black twice. This changes only the background, and its cause is not known. It may come from how the dome light starts up, and needs a look if it also appears with a window.

@@ -10,7 +10,8 @@ from typing import Any
 from pxr import Gf, Sdf, UsdGeom, Vt
 
 from . import appearance
-from .core.layout import Vector, create_layout
+from .core.crane_dimensions import crane_boxes, crane_dimensions
+from .core.layout import Box, Vector, create_layout
 from .core.state_source import CellChanges, RunState, StateSource, WarehouseDescription
 
 WORLD = "/World"
@@ -19,6 +20,8 @@ RACKS = "/World/Racks"
 CRANES = "/World/Cranes"
 CAMERA = "/World/Camera"
 SELECTION = "/World/Selection"
+AISLE_LIGHTS = "/World/AisleLights"
+MODELS_DETAILED = "detailed"
 TRANSFER_ROLES = ("inbound", "outbound")
 ENDS = ("left", "right")
 # Steep and nearly along the aisles, so that stored stock does not hide the cranes.
@@ -48,9 +51,13 @@ class _Crane:
 
 
 class WarehouseScene:
-    def __init__(self, stage: Any, description: WarehouseDescription) -> None:
+    def __init__(
+        self, stage: Any, description: WarehouseDescription, models: str = "simple"
+    ) -> None:
         self.stage = stage
+        self.detailed = models == MODELS_DETAILED
         self.layout = create_layout(description.layout)
+        self._crane_size = crane_dimensions(self.layout)
         self.bounds = self.layout.bounds()
         appearance.look_warnings.clear()
         UsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.y)
@@ -64,7 +71,11 @@ class WarehouseScene:
         self._build_transfer_points(description)
         UsdGeom.Xform.Define(stage, CRANES)
         for aisle in range(1, self.layout.aisle_count + 1):
-            appearance.create_crane(stage, f"{CRANES}/Aisle_{aisle}", self.layout)
+            appearance.create_crane(stage, f"{CRANES}/Aisle_{aisle}", self.layout, self.detailed)
+            if self.detailed:
+                appearance.create_aisle_light(
+                    stage, f"{AISLE_LIGHTS}/Aisle_{aisle}", self.layout, aisle
+                )
         appearance.create_highlight(stage, SELECTION, self.layout)
         self._build_camera()
 
@@ -155,6 +166,23 @@ class WarehouseScene:
         camera.CreateClippingRangeAttr(Gf.Vec2f(max(distance / 500, 0.01), distance * 20))
         view = Gf.Matrix4d().SetLookAt(eye, center, Gf.Vec3d(0.0, 1.0, 0.0))
         self.stage.GetPrimAtPath(CAMERA).GetAttribute("xformOp:transform").Set(view.GetInverse())
+
+    def crane_shape(self, aisle: int, crane: Any) -> list[Box]:
+        """Returns the boxes of a detailed crane as it is shown, for selection."""
+        return list(
+            crane_boxes(
+                self.layout,
+                self._crane_size,
+                aisle,
+                crane.position,
+                carrying=crane.carrying is not None,
+            ).values()
+        )
+
+    def crane_highlight_point(self, aisle: int, position: tuple[float, float]) -> Vector:
+        """Returns the center of the outline around a crane or the load that it carries."""
+        x, y, z = self.layout.crane_world_position(aisle, position)
+        return (x, y + self.layout.cell_height / 2, z) if self.detailed else (x, y, z)
 
     def set_highlight(self, point: Vector | None) -> None:
         """Marks a 3D point as selected, or removes the mark when given None."""

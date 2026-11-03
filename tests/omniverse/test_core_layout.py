@@ -72,3 +72,10 @@ def test_cells_in_instance_order() -> None:
     cells = list(layout.cells())
     assert len(cells) == 60
     assert [layout.cell_instance(cell) for cell in cells] == list(range(60))
+
+
+def test_load_in_a_cell_starts_above_the_cells_floor() -> None:
+    layout = create_layout(LAYOUT)
+    assert layout.pair_base_height() == pytest.approx(0.15)  # (1 - 0.85) / 2 of 2 m
+    box = layout.cell_box((1, 1, 1, 1))
+    assert box.center[1] - layout.load_size()[1] / 2 == pytest.approx(layout.pair_base_height())

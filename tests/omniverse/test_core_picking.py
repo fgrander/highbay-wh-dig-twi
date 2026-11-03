@@ -7,7 +7,8 @@ Aisle 2 is at z = 4.65: rack 1 spans z 2.4 to 3.9, and rack 2 spans z 5.4 to 6.9
 
 import pytest
 
-from highbay.replay.core.layout import create_layout
+from highbay.replay.core.crane_dimensions import crane_boxes, crane_dimensions
+from highbay.replay.core.layout import Box, create_layout
 from highbay.replay.core.picking import Selection, pick_cell, pick_crane, select_at
 from highbay.replay.core.state_source import (
     Backlog,
@@ -122,3 +123,43 @@ def test_selection_prefers_cranes_then_load_units_then_cells() -> None:
     assert select_at(LAYOUT, empty, elsewhere, origin, down) == nearest
     # Anywhere else, nothing.
     assert select_at(LAYOUT, empty, elsewhere, (10.0, 100.0, 0.0), (0.0, 1.0, 0.0)) is None
+
+
+SIZE = crane_dimensions(LAYOUT)
+
+
+def detailed_shape(aisle: int, state: CraneState) -> list[Box]:
+    boxes = crane_boxes(LAYOUT, SIZE, aisle, state.position, carrying=state.carrying is not None)
+    return list(boxes.values())
+
+
+ACROSS = (0.0, 0.0, 1.0)
+
+
+@pytest.mark.parametrize(
+    ("x", "y"),
+    [
+        (8.0 - SIZE.column_x, 3.0),  # A column
+        (8.0 + SIZE.column_x, 5.5),  # The other column
+        (8.0, SIZE.height - 0.1),  # The top beam
+        (8.0 - SIZE.frame_x, 3.2),  # A carriage end, at a lift position of 3 m
+        (8.0 - SIZE.section_x, 3.0 + (SIZE.fork_top + SIZE.fork_bottom) / 2),  # The forks
+    ],
+)
+def test_detailed_crane_is_found_by_each_part(x: float, y: float) -> None:
+    cranes = {1: crane(1, (8.0, 3.0))}
+    assert pick_crane(LAYOUT, cranes, (x, y, -100.0), ACROSS, detailed_shape) == 1
+
+
+def test_a_ray_through_the_opening_of_a_detailed_crane_finds_nothing() -> None:
+    cranes = {1: crane(1, (8.0, 3.0))}
+    assert pick_crane(LAYOUT, cranes, (8.0, 5.0, -100.0), ACROSS, detailed_shape) is None
+    # The same ray hits the simple crane's mast.
+    assert pick_crane(LAYOUT, cranes, (8.0, 5.0, -100.0), ACROSS) == 1
+
+
+def test_a_ray_through_the_opening_goes_on_to_what_lies_behind() -> None:
+    shown = state({1: crane(1, (10.0, 0.0))})
+    origin = (10.0, 4.5, -100.0)
+    found = select_at(LAYOUT, Source({}), shown, origin, ACROSS, detailed_shape)
+    assert found == Selection("cell", location=(1, 1, 3, 2))

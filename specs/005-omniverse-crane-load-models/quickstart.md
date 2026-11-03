@@ -22,14 +22,14 @@ powershell -ExecutionPolicy Bypass -File omniverse/run-replay.ps1 out/small
 ```
 
 - Each crane has two columns joined at the top, with the load space between them.
-- Play: cranes travel and lift, and their color strips show their activity.
+- Play: cranes travel and lift, and the color of their columns shows their activity.
 - Click on a column, the carriage, and the forks: each selects the crane. Click through the opening between the columns: what lies behind is selected.
 
 Automated: crane positions at 100 sampled times in `out/small` and `out/small-stepped`, and clicks at 20 sampled points.
 
 ## S3: Seeing into a full aisle (SC-004)
 
-Open `out/overloaded`, move to a time with a full warehouse, and look along an aisle from its end. The crane and its activity can be told apart for each of the four activities. A reviewer checks sample images, which the implementation stores with this feature.
+Open `out/overloaded`, move to a time with a full warehouse, and look along an aisle from its end. The crane and its activity can be told apart for each of the four activities. A reviewer checks sample images, such as those in [images/](images/).
 
 ## S4: Forks at work (User Story 2, SC-002)
 
