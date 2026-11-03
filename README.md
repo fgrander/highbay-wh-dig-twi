@@ -206,6 +206,4 @@ The project was built with [Spec Kit](https://github.com/github/spec-kit). Each 
 
 ## AI working time
 
-Features 004 and 005, the Omniverse replay with its crane and load models, took about 4.9 hours of AI working time with Claude Code: about 1.8 hours of the model working, and about 3.1 hours of tools running, such as tests and renders. This is measured from the session's log for 2 and 3 November 2026. It leaves out time spent waiting for the project owner, including two pauses overnight of about 16 hours together, and it does not count the project owner's own time. Short waits for a permission inside a step may be included.
-
-Earlier features are not included, as no logs of them are left.
+The whole project took at least about 7 hours of AI working time with Claude Code. This is an estimate.
