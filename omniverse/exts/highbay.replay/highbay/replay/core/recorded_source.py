@@ -16,6 +16,7 @@ from .state_source import (
     CellChanges,
     CellDetails,
     CraneState,
+    HandlingStep,
     LoadUnit,
     Location,
     OrderDetails,
@@ -41,14 +42,17 @@ _ORDER_START = 4
 _ORDER_COMPLETION = 5
 _ORDER_LOCATION = 7
 _ORDER_END = 8
+_STEP_KINDS = {"load_picked": "pick", "load_set": "set"}
+_SAME_TIME_S = 1e-9
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class _Activity:
     start_s: float
     end_s: float
     activity: str
     order: int | None
+    step: HandlingStep | None = None
 
 
 @dataclass(slots=True)
@@ -87,9 +91,12 @@ class RecordedSource:
         self._activity_starts: dict[int, list[float]] = {aisle: [] for aisle in self._aisles}
         self._movements: dict[int, list[dict[str, Any]]] = {aisle: [] for aisle in self._aisles}
         self._movement_starts: dict[int, list[float]] = {aisle: [] for aisle in self._aisles}
+        self._last_handling: dict[int, int] = {}
         for row in self._events:
             if row[_KIND] == "activity_started":
                 self._index_activity(row)
+            elif row[_KIND] in _STEP_KINDS:
+                self._index_handling_step(row)
         # Going through the whole run once finds damage now rather than during playback.
         self._reset()
         self._move_to(self._duration_s)
@@ -103,6 +110,8 @@ class RecordedSource:
             _Activity(row[_TIME], row[_END], row[_ACTIVITY], row[_ORDER])
         )
         self._activity_starts[crane].append(row[_TIME])
+        if row[_ACTIVITY] == "handling":
+            self._last_handling[crane] = len(self._activities[crane]) - 1
         if row[_START_POSITION] is not None:
             self._movements[crane].append(
                 {
@@ -112,6 +121,20 @@ class RecordedSource:
                 }
             )
             self._movement_starts[crane].append(row[_TIME])
+
+    def _index_handling_step(self, row: list[Any]) -> None:
+        """Notes what a handling activity does, from the event that ends it, if there is one."""
+        crane = row[_CRANE]
+        index = self._last_handling.get(crane)
+        if index is None:
+            return
+        activity = self._activities[crane][index]
+        if abs(activity.end_s - row[_TIME]) > _SAME_TIME_S:
+            return
+        location = tuple(row[_LOCATION]) if row[_LOCATION] is not None else None
+        activity.step = HandlingStep(
+            _STEP_KINDS[row[_KIND]], location, activity.start_s, activity.end_s
+        )
 
     def _reset(self) -> None:
         self._time = 0.0
@@ -233,6 +256,7 @@ class RecordedSource:
             carrying=self._carried[aisle],
             position=(horizontal, vertical),
             movement_target=target,
+            handling=current.step if current else None,
         )
 
     def describe(self) -> WarehouseDescription:

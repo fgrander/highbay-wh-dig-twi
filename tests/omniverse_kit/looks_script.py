@@ -16,6 +16,7 @@ async def main(arguments: dict[str, Any]) -> dict[str, Any]:
     await wait_frames(2)
     stage = omni.usd.get_context().get_stage()
     mast = stage.GetPrimAtPath("/World/Cranes/Aisle_1/Mast")
+    ball = stage.GetPrimAtPath("/World/Cranes/Aisle_1/Mast/Ball")
     beam = stage.GetPrimAtPath("/World/Racks/Beam")
     positions = {}
     colors = {}
@@ -28,7 +29,7 @@ async def main(arguments: dict[str, Any]) -> dict[str, Any]:
     return {
         "mast_type": mast.GetTypeName(),
         "mast_has_reference": mast.HasAuthoredReferences(),
-        "mast_child": stage.GetPrimAtPath("/World/Cranes/Aisle_1/Mast/Ball").GetTypeName(),
+        "mast_child": ball.GetTypeName() if ball else None,
         "mast_translate": list(mast.GetAttribute("xformOp:translate").Get()),
         "beam_type": beam.GetTypeName(),
         "warnings": appearance.look_warnings,

@@ -1,6 +1,6 @@
 # Research: Omniverse Crane and Load Models
 
-The project owner decided on the crane's form, on pairs that always move together, and on a pair counting as one article. The other decisions are proposals made during planning. Measurements were taken on 2026-11-03 on the project owner's computer, as in [feature 004](../004-omniverse-run-replay/research.md).
+The project owner decided on the crane's form, on a load that always moves together, and on a load counting as one article. The other decisions are proposals made during planning. Measurements were taken on 2026-11-03 on the project owner's computer, as in [feature 004](../004-omniverse-run-replay/research.md).
 
 ## Facts checked in a recording
 
@@ -18,32 +18,32 @@ Checked on recordings of the small sample warehouse in both modes, by `tests/omn
 
 ## Fork positions are a pure function of time
 
-- **Decision**: A new core module computes the forks and pair from a handling step, a time, and the layout. Extending takes the first 40% of the step, holding the next 20%, and returning the last 40%, each at a constant rate.
+- **Decision**: A new core module computes the forks and load from a handling step, a time, and the layout. Extending takes the first 40% of the step, holding the next 20%, and returning the last 40%, each at a constant rate.
 - **Rationale**: FR-008 asks for the same result however a time is reached, and such a function can be tested without Kit.
 - **Alternatives considered**: A smooth profile looks slightly better, but nothing in the recording supports any profile, and this is display only.
 
 ## No visible lift
 
-- **Decision**: The pair stays at one height, the same on the forks and in the cell. The carriage stays at its recorded height, as FR-003 requires.
+- **Decision**: The load stays at one height, the same on the forks and in the cell. The carriage stays at its recorded height, as FR-003 requires.
 - **Rationale**: A lift would need the carriage or forks to leave their recorded heights, for a movement of a few centimeters based on placeholder dimensions.
 - **Alternatives considered**: Moving the forks alone by a small lift can be added when real dimensions exist.
 
-## Fewest writes to the array of stored pairs
+## Fewest writes to the array of stored loads
 
-- **Decision**: During a pick at a cell, the stored instance is hidden from the start of the step, and the carried pair is shown at the cell's position, which looks identical. It stays there until the forks start to return, and then moves with them. During a set, the carried pair moves out with the forks and stays at the cell's position until the recorded event stores it. The scene writes the arrays only when their content changed.
+- **Decision**: During a pick at a cell, the stored instance is hidden from the start of the step, and the carried load is shown at the cell's position, which looks identical. It stays there until the forks start to return, and then moves with them. During a set, the carried load moves out with the forks and stays at the cell's position until the recorded event stores it. The scene writes the arrays only when their content changed.
 - **Rationale**: A write to the array costs far more than moving a prim (see below). This way each step causes about as many writes as before: the hide at the start of a pick replaces the write at its event, which then changes nothing. Figures keep following the recording.
 - **Alternatives considered**: Moving a stored instance by rewriting the positions array in every frame would be measurably slower at 100,000 cells.
 
-## One instance per cell, with one prototype per pair
+## One instance per cell, with one prototype per load
 
-- **Decision**: The instancer keeps one instance per cell. Each prototype is a pair, a group with two load units. There is one prototype per distinct pair of types, and one per article color for undefined articles.
+- **Decision**: The instancer keeps one instance per cell. Each prototype is a load, a group with one unit or two parts. There is one prototype per distinct load definition, and one per article color for undefined articles.
 - **Rationale**: Instance numbers, hiding, picking, and the arrays' size stay as in feature 004, and the number of objects does not double.
 - **Alternatives considered**: Two instances per cell would change instance numbering, double the arrays, and allow nothing this feature needs.
 
 ## Load unit geometry
 
-- **Decision**: Each stack is one mesh. A board stack has one box per board, with every second board set slightly inward so that each is visible. A sheet stack is one block with bands, in two materials bound through subsets of its faces. It shows about 20 bands rather than 1000 sheets, and needs no texture file.
-- **Rationale**: One mesh per stack is cheap to instance. Bands stay readable from a distance, where 1000 real lines would blur. A shiny material on both bands gives the laminated look.
+- **Decision**: Each stack is one mesh. A board stack has one box per board, with every second board set slightly inward so that each is visible. A paper pallet has a wooden pallet of a deck, runners, and a base, with one block of sheets on it. The block has bands, in two materials bound through subsets of its faces. It shows about 20 bands rather than 1000 sheets, and needs no texture file. The forks carry a pallet from below, not through its openings, as the placeholder forks stand under the two halves of a cell.
+- **Rationale**: One mesh per stack is cheap to instance. Bands stay readable from a distance, where 1000 real lines would blur. A shiny material on both bands gives the laminated look. The project owner corrected the load's name from Malette to a pallet with paper on 2026-11-03, before any of this geometry was built. The measurement below had no pallets, so T042 has to confirm its cost.
 - **Alternatives considered**: A texture needs a file and has to be scaled per size. One prim per board multiplies the prims per prototype by 30, for no visible difference.
 
 A sample image shows both stacks as readable, with individual boards and bands, at 8 prototypes and with 30 boards in each board stack.
@@ -61,22 +61,22 @@ A sample image shows both stacks as readable, with individual boards and bands, 
 
 ## Selection follows the shown crane
 
-- **Decision**: With detailed models, `pick_crane` uses a list of boxes for columns, travel gear, top beam, carriage ends, forks at their current extension, and the pair. They are computed from the same dimensions as the model, in one core module. A click through the opening between the columns does not select the crane. With simple models, the existing boxes stay in use, and the comparison with the browser viewer is unchanged.
+- **Decision**: With detailed models, `pick_crane` uses a list of boxes for columns, travel gear, top beam, carriage ends, forks at their current extension, and the load. They are computed from the same dimensions as the model, in one core module. A click through the opening between the columns does not select the crane. With simple models, the existing boxes stay in use, and the comparison with the browser viewer is unchanged.
 - **Rationale**: FR-005, and a test in Kit compares the boxes with the model's actual bounds, so that the two cannot drift apart.
 
 ## Columns stand outside the whole cell length
 
 - **Decision**: The columns are positioned from the full cell length, not from the 0.85 share used for a single load in feature 004.
-- **Rationale**: Each half of a pair is centered at a quarter of the cell length. With the old position, a sample pair reached ±1.50 m, while the carriage's end frames started at ±1.43 m, so the load would pass through them.
+- **Rationale**: With the first position, a load in two halves of a sample cell reached ±1.50 m, while the carriage's end frames started at ±1.43 m, so the load would pass through them.
 
 ## Forks must clear the rack beams
 
-- **Decision**: Forks sit between the top of a rack beam and the bottom of the pair, so their height is derived from the layout: from half a rack member above the carriage's height, plus a small gap, up to the pair's bottom. In the sample, this gives about 6 cm. The rack member's thickness moves from `appearance.py` to `layout.py` for this.
+- **Decision**: Forks sit between the top of a rack beam and the bottom of the load, so their height is derived from the layout: from half a rack member above the carriage's height, plus a small gap, up to the load's bottom. In the sample, this gives about 6 cm. The rack member's thickness moves from `appearance.py` to `layout.py` for this.
 - **Rationale**: The recorded height is the floor of the cell, where a rack beam lies. A test checks that no fork or load box overlaps a beam at the lowest level (User Story 1, scenario 5).
 
-## Pair definitions in TOML
+## Load definitions in TOML
 
-- **Decision**: One TOML file holds load unit types and pair definitions, read with `tomllib`, by default from the extension's `data` folder and otherwise from a setting. It is read each time a run is opened.
+- **Decision**: One TOML file holds load unit types and load definitions, read with `tomllib`, by default from the extension's `data` folder and otherwise from a setting. It is read each time a run is opened.
 - **Rationale**: FR-011 asks for versionable data. `tomllib` is in the standard library of both Python versions, so the core stays free of dependencies, and unlike JSON the file can have comments.
 - **Alternatives considered**: YAML, as in the warehouse files, is not in Kit's standard library.
 
@@ -94,7 +94,7 @@ A sample image shows both stacks as readable, with individual boards and bands, 
 
 ## Measured performance
 
-A prototype with 100,000 cells, 30% of them hidden, 8 pair prototypes each with a board stack of 30 boards and a sheet stack of 20 bands, at 1920×1080 in RTX Real-Time mode without a window, with the whole warehouse in view, and with the frame limiter and eco mode off:
+A prototype with 100,000 cells, 30% of them hidden, 8 load prototypes each with a board stack of 30 boards and a sheet stack of 20 bands, at 1920×1080 in RTX Real-Time mode without a window, with the whole warehouse in view, and with the frame limiter and eco mode off:
 
 | Case | Frames per second | Slowest frame |
 |---|---|---|
@@ -102,13 +102,23 @@ A prototype with 100,000 cells, 30% of them hidden, 8 pair prototypes each with 
 | No changes, with 20 aisle lights | 285 | 6 ms |
 | `invisibleIds` written in every frame | 39 | 32 ms |
 
-**Limits of this prototype**: It had no racks and no cranes, and calculated no state, and was run only once. Feature 004's full scene reached 32 frames per second at this size. The numbers show that pair prototypes and lights are not the main cost, but they do not prove SC-006. The performance tests do that, with the full scene.
+**Limits of this prototype**: It had no racks and no cranes, and calculated no state, and was run only once. Feature 004's full scene reached 32 frames per second at this size. The numbers show that load prototypes and lights are not the main cost, but they do not prove SC-006. The performance tests do that, with the full scene.
 
-## Sizes of the sample stacks
+## Real sizes and cells
 
-- **Decision**: In the default definitions, both types are 1.4 m long and 1.25 m wide, which fits in half of a sample cell (1.6 m by 1.5 m). A particle board stack is 30 boards of 19 mm, and a sheet stack 1000 sheets of 0.3 mm, for heights of 0.57 m and 0.30 m.
-- **Rationale**: Real boards of up to 2.8 m do not fit in half of these cells. These sizes are placeholders, as stated in the spec, and are changed only in the data file.
+- **Facts from the project owner**: Paper is 5.61 m by 2.08 m, one pallet to a cell, with its long side along the aisle. Boards are at most 5.6 m by 2.07 m, and can be split in two parts of at least 1.5 m that add up to 5.6 m.
+- **Decision**: A new sample warehouse has cells 5.8 m long and 2.3 m wide, which are the loads' sizes with about 10 cm of space on each side. The height stays at the sample's 1.5 m until a real one is known. Existing samples and their results stay unchanged, and their articles get smaller types that fit a cell 3.2 m long and 1.5 m wide, as these samples only show the application.
+- **Rationale**: Cell sizes change travel times, and so throughput. A separate warehouse file keeps this visible, and its results say nothing about the real warehouse until real cells are known.
+
+## Fork sections under every possible part
+
+- **Decision**: Sections stand at ± the larger of a quarter of a cell and half a cell less 0.85 m, instead of always at a quarter.
+- **Rationale**: A cut can be anywhere, and the smallest part is 1.5 m. The outer 1.5 m at each end therefore always belongs to one part, so a section under this length carries its part wherever the cut is, and both sections together carry a whole unit. A section's tines reach about 0.54 m to either side in a 5.8 m cell, which stays inside this length.
 
 ## Open observation: the sky's color
 
 Across windowless Kit runs with the same settings, the background was either gray or black for a whole run: 3 runs of the same recording gave gray once and black twice. This changes only the background, and its cause is not known. It may come from how the dome light starts up, and needs a look if it also appears with a window.
+
+## Sharing prototypes between instancers
+
+- **Result**: Each crane's carried load is a `PointInstancer` with one instance, using the prototypes under `/World/Loads`. Kit renders this, as seen in images of a pick and a set on the small sample, and no fallback is needed. Its cost has not been measured separately yet, which the performance tests do.

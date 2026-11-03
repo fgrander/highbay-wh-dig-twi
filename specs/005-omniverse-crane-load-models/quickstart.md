@@ -37,23 +37,28 @@ Open `out/small`, pause, and select a crane. Find a retrieval, which picks at a 
 
 | Time in the step | Pick | Set |
 |---|---|---|
-| Start | Forks at rest, pair in cell | Forks at rest, pair on them |
-| 40% | Forks extended under the pair, towards its rack | Forks and pair extended, pair at its cell |
-| 60% | Same | Forks extended, pair at its cell |
-| End | Forks at rest, pair on them | Forks at rest, pair in cell |
+| Start | Forks at rest, load in cell | Forks at rest, load on them |
+| 40% | Forks extended under the load, towards its rack | Forks and load extended, load at its cell |
+| 60% | Same | Forks extended, load at its cell |
+| End | Forks at rest, load on them | Forks at rest, load in cell |
 
 Repeat for the other rack. The figures do not change at any point before the recorded event at the end. Picks and sets at aisle ends show no fork movement.
 
 Automated: both directions in Kit, and the fork function without Kit.
 
-## S5: Pairs and stacks (User Story 3, SC-005, SC-009)
+## S5: Loads and stacks (User Story 3, SC-005, SC-009)
 
-In `out/small`, zoom in on a cell of each article, and on a crane carrying a pair.
+```text
+uv run highbay-sim run samples/replay/real-size-warehouse.yaml samples/replay/real-size-scenario.yaml --output out/real-size --replay
+powershell -ExecutionPolicy Bypass -File omniverse/run-replay.ps1 out/real-size
+```
 
-- `oak-panel-18mm` shows particle boards at −x and laminated sheets at +x, in the cell and on the crane.
-- `paper-a4-80g` shows two sheet stacks.
-- Boards show one by one, and sheets as a shiny, banded block.
-- Details of a selected pair name its article and both types.
+Zoom in on a cell of each article, and on a crane carrying a load.
+
+- `paper-5610` shows one wooden pallet with paper, as a shiny, banded block, over both fork sections.
+- `board-5600` shows one stack of boards, one by one.
+- `board-2100-3500` and `board-3000-2600` show two parts with a visible cut, in different places, each above its section, in the cell and on the crane.
+- Details of a selected load name its article and its unit or parts.
 
 Then copy `omniverse/exts/highbay.replay/data/load_definitions.toml`, change a `count`, and start with `-LoadDefinitions` and the copy. The stack changes, with no change to any code, in under 5 minutes.
 
@@ -61,10 +66,11 @@ Then copy `omniverse/exts/highbay.replay/data/load_definitions.toml`, change a `
 
 Each of these opens the run, and the window names the problem:
 
-- Remove the line for `paper-a4-80g` from a copy of the definitions: its pairs show as two simple boxes in its color.
-- Name a type that does not exist: that side shows a simple box.
-- Point a `file` type at a missing file: that side shows a simple box.
-- Set a type's `length_m` to 2.8: it shows as defined, overlapping its neighbor.
+- Remove the line for `paper-5610` from a copy of the definitions: its loads show as a simple box in its color.
+- Name a type that does not exist: that unit shows as a simple box.
+- Point a `file` type at a missing file: that unit shows as a simple box.
+- Set a split's lengths to 1.0 and 4.6: it shows as defined, and the warning names the lengths.
+- Open `out/small` with a load 5.6 m long: it shows as defined, overlapping its neighbor.
 - Give a definitions path that does not exist: all articles look simple.
 
 ## S7: Simple shapes (FR-017)

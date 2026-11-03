@@ -6,7 +6,7 @@
 
 ## Summary
 
-Show a two-column stacker crane, fork sections that extend during recorded handling, and pairs of particle board and laminated sheet stacks in the Omniverse replay. Models are generated from a warehouse's dimensions when a run is opened, by standard library code that needs no Kit. A pure function turns a recorded handling step and a time into fork and pair positions. Pair definitions are a TOML file. The instancer keeps one instance per cell, with one prototype per pair, so its structure and cost stay close to feature 004's. The simulation, its results, the recording format, and the browser replay do not change.
+Show a two-column stacker crane, fork sections that extend during recorded handling, and loads of pallets with paper, and whole or split stacks of particle boards in the Omniverse replay. Models are generated from a warehouse's dimensions when a run is opened, by standard library code that needs no Kit. A pure function turns a recorded handling step and a time into fork and load positions. Load definitions are a TOML file. The instancer keeps one instance per cell, with one prototype per load definition, so its structure and cost stay close to feature 004's. The simulation, its results, the recording format, and the browser replay do not change.
 
 ## Technical Context
 
@@ -26,7 +26,7 @@ Show a two-column stacker crane, fork sections that extend during recorded handl
 
 **Constraints**: Results stay byte-identical except for the software version. Shown positions depend only on simulated time and recorded data. Nothing is written to the run folder or the repository. All dimensions are placeholders that can be changed.
 
-**Scale/Scope**: Up to 20 aisles and 100,000 cells, with one crane per aisle and a few pair definitions
+**Scale/Scope**: Up to 20 aisles and 100,000 cells, with one crane per aisle and a few load definitions
 
 ## Constitution Check
 
@@ -35,12 +35,12 @@ Show a two-column stacker crane, fork sections that extend during recorded handl
 | Principle or rule | How this plan complies | Pre-design | Post-design |
 |---|---|---|---|
 | I. Simulation core independent of visualization | Only the extension changes. The existing test that the simulation imports nothing from it stays. | PASS | PASS |
-| II. Reproducible simulation | No simulation code changes. Fork and pair positions are a pure function of simulated time and recorded data, and a built scene has no machine details. | PASS | PASS |
-| III. Credible throughput results | No metric changes. The figures keep following the recording during handling. The documentation states that a pair is one article and one order, so throughput counts pairs (FR-018). | PASS | PASS |
+| II. Reproducible simulation | No simulation code changes. Fork and load positions are a pure function of simulated time and recorded data, and a built scene has no machine details. | PASS | PASS |
+| III. Credible throughput results | No metric changes. The figures keep following the recording during handling. The documentation states that a load is one article and one order, so throughput counts loads (FR-018). | PASS | PASS |
 | IV. Live data as a later, pluggable option | Handling details reach the display through one optional field of the state interface, with no way to write. A source without them still works. | PASS | PASS |
 | V. Test-first simulation logic | Core modules are written test-first. Display code has tests in Kit where practical, and otherwise the manual steps in the quickstart. | PASS | PASS |
 | VI. Incremental delivery and simplicity | Each story can be demonstrated on its own. Added complexity is justified below. | PASS | PASS |
-| Technical constraints | Pair definitions and sizes are versionable data. Performance targets are stated, and no credentials are involved. | PASS | PASS |
+| Technical constraints | Load definitions and sizes are versionable data. Performance targets are stated, and no credentials are involved. | PASS | PASS |
 | Development workflow | Spec Kit sequence on a feature branch. No change alters simulation results, and reference hashes check this. The branch builds on feature 004, which has to be merged first. | PASS | PASS |
 
 No violations.
@@ -53,7 +53,7 @@ No violations.
 specs/005-omniverse-crane-load-models/
 ├── plan.md              # This file
 ├── research.md          # Technical decisions, measurements, and open risks
-├── data-model.md        # Handling steps, fork positions, types, pairs, and the scene
+├── data-model.md        # Handling steps, fork positions, types, loads, and the scene
 ├── quickstart.md        # Validation scenarios and manual steps
 ├── contracts/
 │   ├── state-interface.md  # The added field
@@ -70,23 +70,23 @@ omniverse/
 ├── run-replay.ps1           # Changed: -LoadDefinitions
 ├── models/                  # Removed: generation moves into the extension
 └── exts/highbay.replay/
-    ├── README.md            # Changed: placeholder dimensions, definitions, and what a pair counts as
+    ├── README.md            # Changed: placeholder dimensions, definitions, and what a load counts as
     ├── data/
-    │   └── load_definitions.toml  # New: default types and pairs
+    │   └── load_definitions.toml  # New: default types and loads
     └── highbay/replay/
         ├── core/
         │   ├── state_source.py      # Changed: HandlingStep, CraneState.handling, version 2
         │   ├── recorded_source.py   # Changed: fills in handling
-        │   ├── fork_motion.py       # New: fork and pair positions from a step and a time
+        │   ├── fork_motion.py       # New: fork and load positions from a step and a time
         │   ├── crane_dimensions.py  # New: sizes and selection boxes of the crane
         │   ├── crane_model.py       # New: crane parts as USDA text, moved from models/
         │   ├── load_models.py       # New: stacks as USDA text
         │   ├── load_definitions.py  # New: reads and checks definitions, and gives warnings
         │   ├── layout.py            # Changed: rack member thickness
         │   ├── picking.py           # Changed: boxes come from a given crane shape
-        │   └── display_text.py      # Changed: pair lines
-        ├── appearance.py    # Changed: generated models, pair prototypes, and aisle lights
-        ├── scene.py         # Changed: fork stages, carried pair, and fewer array writes
+        │   └── display_text.py      # Changed: load lines
+        ├── appearance.py    # Changed: generated models, load prototypes, and aisle lights
+        ├── scene.py         # Changed: fork stages, carried load, and fewer array writes
         ├── window.py        # Changed: warnings
         └── extension.py     # Changed: settings and definitions
 
@@ -96,7 +96,7 @@ tests/
 └── performance/             # Changed: SC-006 and SC-007 with detailed models
 
 pyproject.toml               # Changed: version 0.5.0
-README.md                    # Changed: crane, pairs, and definitions
+README.md                    # Changed: crane, loads, and definitions
 ```
 
 **Structure Decision**: Everything lives in the existing extension. Model generation moves into `core/` so that a run opened from the window can have any size of warehouse, and so that the generated text can be tested without Kit. `crane_model.py` and `crane_dimensions.py` are separate because selection needs the sizes but not the text.
@@ -106,8 +106,8 @@ README.md                    # Changed: crane, pairs, and definitions
 This follows the story priorities, so that each step can be shown.
 
 1. **User Story 1**: `crane_dimensions`, `crane_model`, generated cranes in the scene, selection boxes, aisle lights, and status colors. Loads remain single boxes, placed as today.
-2. **User Story 2**: `handling` from recordings, `fork_motion`, moving fork stages, the carried pair's offset, and the hidden cell.
-3. **User Story 3**: `load_definitions`, `load_models`, pair prototypes, details, and warnings.
+2. **User Story 2**: `handling` from recordings, `fork_motion`, moving fork stages, the carried load's offset, and the hidden cell.
+3. **User Story 3**: `load_definitions`, `load_models`, load prototypes, details, and warnings.
 
 ## Complexity Tracking
 
@@ -115,11 +115,10 @@ This follows the story priorities, so that each step can be shown.
 |----------|------------|--------------------------------------|
 | Models generated as USDA text, then copied into the stage | FR-002 needs a crane for any warehouse, and a run can be opened from the window at any time | Files made before starting cannot follow a run chosen later. A reference to an anonymous layer leaves machine details in the scene. |
 | A separate `simple` mode alongside detailed models | FR-017, and it keeps feature 004's tests and browser comparison valid | Removing the simple shapes would break FR-017, and all tests of them would have to be replaced |
-| A hide of a stored pair that does not come from the recording | FR-007 asks to see the pair leave its cell during a handling step, while the recording moves it at the step's end | Showing the pair in both places, or moving it only at the event, contradicts the acceptance scenarios |
+| A hide of a stored load that does not come from the recording | FR-007 asks to see the load leave its cell during a handling step, while the recording moves it at the step's end | Showing the load in both places, or moving it only at the event, contradicts the acceptance scenarios |
 
 ## Open Risks
 
 - **Light in tall warehouses**: The intensity was judged at a height of 15 m only ([research.md](research.md)).
-- **Sharing prototypes between instancers**: Each crane's carried pair is planned to use the prototypes of `/World/Loads`, which is not measured yet. If Kit does not render this, each crane gets its own group of prototypes, or the carried pairs are placed by one instancer of their own.
 - **Performance**: The prototype had no racks or cranes. Only the performance tests with the full scene can prove SC-006.
-- **Real dimensions**: These are still missing, and may change forks, stacks, and whether the sample's stacks fit.
+- **Real dimensions**: Lengths and widths of the loads are known. Cell sizes are derived from them, and heights are still missing, which may change forks and how many levels fit. Cell sizes affect travel times, so results of the new sample warehouse say nothing about the real warehouse's throughput yet.

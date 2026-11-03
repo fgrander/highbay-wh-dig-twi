@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from typing import Any, Protocol, runtime_checkable
 
-INTERFACE_VERSION = 1
+INTERFACE_VERSION = 2
 
 Location = tuple[int, int, int, int]
 
@@ -52,6 +52,16 @@ class CellDetails:
 
 
 @dataclass(frozen=True, slots=True)
+class HandlingStep:
+    """A crane picking or setting. With no location, it does so at an aisle end."""
+
+    kind: str
+    location: Location | None
+    start_s: float
+    end_s: float
+
+
+@dataclass(frozen=True, slots=True)
 class CraneState:
     aisle: int
     activity: str
@@ -59,6 +69,7 @@ class CraneState:
     carrying: str | None
     position: tuple[float, float]
     movement_target: tuple[float, float] | None
+    handling: HandlingStep | None = None
 
 
 @dataclass(frozen=True, slots=True)

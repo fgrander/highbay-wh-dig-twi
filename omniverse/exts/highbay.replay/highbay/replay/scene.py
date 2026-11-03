@@ -11,6 +11,7 @@ from pxr import Gf, Sdf, UsdGeom, Vt
 
 from . import appearance
 from .core.crane_dimensions import crane_boxes, crane_dimensions
+from .core.fork_motion import REST, ForkPose, fork_pose
 from .core.layout import Box, Vector, create_layout
 from .core.state_source import CellChanges, RunState, StateSource, WarehouseDescription
 
@@ -22,6 +23,7 @@ CAMERA = "/World/Camera"
 SELECTION = "/World/Selection"
 AISLE_LIGHTS = "/World/AisleLights"
 MODELS_DETAILED = "detailed"
+SECTIONS = ("Section1", "Section2")
 TRANSFER_ROLES = ("inbound", "outbound")
 ENDS = ("left", "right")
 # Steep and nearly along the aisles, so that stored stock does not hide the cranes.
@@ -35,9 +37,9 @@ WIDEST_VIEWPORT_ASPECT = 2.0
 class _Crane:
     """The attribute specs of one crane, for fast writes, with what they currently hold."""
 
-    def __init__(self, layer: Any, aisle: int) -> None:
+    def __init__(self, stage: Any, aisle: int) -> None:
         path = f"{CRANES}/Aisle_{aisle}"
-        spec = layer.GetAttributeAtPath
+        spec = stage.GetRootLayer().GetAttributeAtPath
         self.translate = spec(f"{path}.xformOp:translate")
         self.carriage = spec(f"{path}/Carriage.xformOp:translate")
         self.colors = (
@@ -46,8 +48,29 @@ class _Crane:
         )
         self.carried_visibility = spec(f"{path}/Carriage/CarriedLoad.visibility")
         self.carried_color = spec(f"{path}/Carriage/CarriedLoad.primvars:displayColor")
+        self.carried_positions = spec(f"{path}/Carriage/CarriedLoad.positions")
+        self.carried_prototypes = spec(f"{path}/Carriage/CarriedLoad.protoIndices")
+        self.fork_stages = [
+            self._writable(
+                stage, f"{path}/Carriage/Platform/{section}/{stage_name}.xformOp:translate"
+            )
+            for section in SECTIONS
+            for stage_name in ("Middle", "Top")
+        ]
         self.activity: str | None = None
         self.carrying: str | None = None
+        self.extension = 0.0
+        self.pair_offset = 0.0
+
+    @staticmethod
+    def _writable(stage: Any, path: str) -> Any:
+        """Returns the spec of a fork stage, or None if a replacing file has no such stage."""
+        attribute = stage.GetAttributeAtPath(path)
+        if not attribute or not attribute.IsValid():
+            return None
+        # A stage from a referenced file needs an opinion in the root layer to be written to.
+        attribute.Set(attribute.Get())
+        return stage.GetRootLayer().GetAttributeAtPath(path)
 
 
 class WarehouseScene:
@@ -67,11 +90,13 @@ class WarehouseScene:
         appearance.create_lights(stage, f"{WORLD}/Dome", f"{WORLD}/Sun")
         appearance.create_floor(stage, f"{WORLD}/Floor", self.bounds)
         self._build_racks()
-        self._build_loads()
+        self._load_prototypes = self._build_loads()
         self._build_transfer_points(description)
         UsdGeom.Xform.Define(stage, CRANES)
         for aisle in range(1, self.layout.aisle_count + 1):
-            appearance.create_crane(stage, f"{CRANES}/Aisle_{aisle}", self.layout, self.detailed)
+            appearance.create_crane(
+                stage, f"{CRANES}/Aisle_{aisle}", self.layout, self.detailed, self._load_prototypes
+            )
             if self.detailed:
                 appearance.create_aisle_light(
                     stage, f"{AISLE_LIGHTS}/Aisle_{aisle}", self.layout, aisle
@@ -81,14 +106,18 @@ class WarehouseScene:
 
         layer = stage.GetRootLayer()
         self._cranes = {
-            aisle: _Crane(layer, aisle) for aisle in range(1, self.layout.aisle_count + 1)
+            aisle: _Crane(stage, aisle) for aisle in range(1, self.layout.aisle_count + 1)
         }
+        self._poses: dict[int, ForkPose] = {}
         self._invisible_spec = layer.GetAttributeAtPath(f"{LOADS}.invisibleIds")
         self._prototypes_spec = layer.GetAttributeAtPath(f"{LOADS}.protoIndices")
         self._highlight_translate = layer.GetAttributeAtPath(f"{SELECTION}.xformOp:translate")
         self._highlight_visibility = layer.GetAttributeAtPath(f"{SELECTION}.visibility")
         self._prototypes = [0] * self.layout.cell_count
         self._hidden = set(range(self.layout.cell_count))
+        self._prototypes_changed = False
+        self._written_hidden: list[int] | None = None
+        self._lifted: list[int] = []
 
     def _build_racks(self) -> None:
         layout = self.layout
@@ -113,16 +142,18 @@ class WarehouseScene:
         instancer.CreatePositionsAttr(Vt.Vec3fArray(positions))
         instancer.CreateProtoIndicesAttr(Vt.IntArray(prototypes))
 
-    def _build_loads(self) -> None:
+    def _build_loads(self) -> list[str]:
         layout = self.layout
         instancer = UsdGeom.PointInstancer.Define(self.stage, LOADS)
         targets = instancer.CreatePrototypesRel()
-        for path in appearance.create_load_prototypes(self.stage, LOADS, layout):
+        prototypes = appearance.create_load_prototypes(self.stage, LOADS, layout)
+        for path in prototypes:
             targets.AddTarget(path)
         positions = [Gf.Vec3f(*layout.cell_box(cell).center) for cell in layout.cells()]
         instancer.CreatePositionsAttr(Vt.Vec3fArray(positions))
         instancer.CreateProtoIndicesAttr(Vt.IntArray([0] * layout.cell_count))
         instancer.CreateInvisibleIdsAttr(Vt.Int64Array(list(range(layout.cell_count))))
+        return prototypes
 
     def _build_transfer_points(self, description: WarehouseDescription) -> None:
         layout = self.layout
@@ -169,13 +200,16 @@ class WarehouseScene:
 
     def crane_shape(self, aisle: int, crane: Any) -> list[Box]:
         """Returns the boxes of a detailed crane as it is shown, for selection."""
+        pose = self._poses.get(aisle, REST)
         return list(
             crane_boxes(
                 self.layout,
                 self._crane_size,
                 aisle,
                 crane.position,
-                carrying=crane.carrying is not None,
+                pose.extension_m,
+                pose.pair_offset_m,
+                crane.carrying is not None or pose.pair_on_crane,
             ).values()
         )
 
@@ -195,6 +229,11 @@ class WarehouseScene:
 
     def update(self, state: RunState, changes: CellChanges, source: StateSource) -> None:
         """Shows a state, writing only what changed, in one change to the stage."""
+        if self.detailed:
+            self._poses = {
+                aisle: fork_pose(crane.handling, state.time_s, self.layout)
+                for aisle, crane in state.cranes.items()
+            }
         with Sdf.ChangeBlock():
             self._update_loads(changes, source)
             for aisle, crane in state.cranes.items():
@@ -207,10 +246,8 @@ class WarehouseScene:
             for load in source.stored_load_units():
                 instance = layout.cell_instance(load.location)  # type: ignore[arg-type]
                 self._hidden.discard(instance)
-                self._prototypes[instance] = appearance.article_prototype(load.article)
+                self._set_prototype(instance, load.article)
         else:
-            if not changes.cells:
-                return
             for location in changes.cells:
                 instance = layout.cell_instance(location)
                 load = source.cell(location).load
@@ -218,9 +255,31 @@ class WarehouseScene:
                     self._hidden.add(instance)
                 else:
                     self._hidden.discard(instance)
-                    self._prototypes[instance] = appearance.article_prototype(load.article)
-        self._prototypes_spec.default = Vt.IntArray(self._prototypes)
-        self._invisible_spec.default = Vt.Int64Array(sorted(self._hidden))
+                    self._set_prototype(instance, load.article)
+        if self._prototypes_changed:
+            self._prototypes_spec.default = Vt.IntArray(self._prototypes)
+            self._prototypes_changed = False
+        # A pair on its way out of a cell shows on the crane, and the recording moves it later.
+        lifted = [
+            layout.cell_instance(pose.hidden_cell)
+            for pose in self._poses.values()
+            if pose.hidden_cell is not None
+        ]
+        if not changes.all and not changes.cells and not lifted and not self._lifted:
+            return
+        if lifted == self._lifted and not changes.all and not changes.cells:
+            return
+        self._lifted = lifted
+        hidden = sorted(self._hidden.union(lifted))
+        if hidden != self._written_hidden:
+            self._written_hidden = hidden
+            self._invisible_spec.default = Vt.Int64Array(hidden)
+
+    def _set_prototype(self, instance: int, article: int) -> None:
+        prototype = appearance.article_prototype(article)
+        if self._prototypes[instance] != prototype:
+            self._prototypes[instance] = prototype
+            self._prototypes_changed = True
 
     def _update_crane(self, aisle: int, crane: Any, source: StateSource) -> None:
         specs = self._cranes[aisle]
@@ -232,7 +291,9 @@ class WarehouseScene:
             colors = Vt.Vec3fArray([appearance.activity_color(crane.activity)])
             for spec in specs.colors:
                 spec.default = colors
-        if crane.carrying != specs.carrying:
+        if self.detailed:
+            self._update_forks(aisle, crane, source)
+        elif crane.carrying != specs.carrying:
             specs.carrying = crane.carrying
             carried = None if crane.carrying is None else source.load(crane.carrying)
             if carried is None:
@@ -242,3 +303,33 @@ class WarehouseScene:
                 specs.carried_color.default = Vt.Vec3fArray(
                     [appearance.article_color(carried.article)]
                 )
+
+    def _update_forks(self, aisle: int, crane: Any, source: StateSource) -> None:
+        specs = self._cranes[aisle]
+        pose = self._poses[aisle]
+        if pose.extension_m != specs.extension:
+            specs.extension = pose.extension_m
+            middle = Gf.Vec3d(0.0, 0.0, pose.extension_m / 2)
+            top = Gf.Vec3d(0.0, 0.0, pose.extension_m)
+            for index, spec in enumerate(specs.fork_stages):
+                if spec is not None:
+                    spec.default = top if index % 2 else middle
+        if pose.hidden_cell is not None:
+            shown = source.cell(pose.hidden_cell).load
+        else:
+            shown = None if crane.carrying is None else source.load(crane.carrying)
+        key = None if shown is None else shown.key
+        if key != specs.carrying:
+            specs.carrying = key
+            if shown is None:
+                specs.carried_visibility.default = UsdGeom.Tokens.invisible
+            else:
+                specs.carried_visibility.default = UsdGeom.Tokens.inherited
+                specs.carried_prototypes.default = Vt.IntArray(
+                    [appearance.article_prototype(shown.article)]
+                )
+        if pose.pair_offset_m != specs.pair_offset:
+            specs.pair_offset = pose.pair_offset_m
+            specs.carried_positions.default = Vt.Vec3fArray(
+                [Gf.Vec3f(0.0, self.layout.cell_height / 2, pose.pair_offset_m)]
+            )

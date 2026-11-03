@@ -11,7 +11,12 @@ import pytest
 
 from conftest import SAMPLES, replay_data
 from highbay.replay.core.recorded_source import RecordedSource, open_recording
-from highbay.replay.core.state_source import INTERFACE_VERSION, StateSource, StateSourceError
+from highbay.replay.core.state_source import (
+    INTERFACE_VERSION,
+    HandlingStep,
+    StateSource,
+    StateSourceError,
+)
 
 COLUMNS = (
     "time_s",
@@ -107,7 +112,7 @@ def source(events: list[list[Any]] | None = None) -> RecordedSource:
 
 
 def test_follows_the_interface() -> None:
-    assert INTERFACE_VERSION == 1
+    assert INTERFACE_VERSION == 2
     instance = source()
     assert isinstance(instance, StateSource)
     assert instance.can_move_backward
@@ -330,3 +335,40 @@ def test_same_state_however_a_time_is_reached(write_run: Callable[..., Path]) ->
     generator.shuffle(order)
     for index in order:
         assert snapshot(jumping, times[index]) == expected[index]
+
+
+def test_handling_is_known_only_during_a_step() -> None:
+    recorded = source(storage_events())
+    assert recorded.state_at(1.0).cranes[1].handling is None
+    assert recorded.state_at(12.0).cranes[1].handling is None  # The step has just ended.
+    assert recorded.state_at(15.0).cranes[1].handling is None  # Moving
+    assert recorded.state_at(31.0).cranes[1].handling is None
+
+
+def test_handling_names_a_pick_at_an_aisle_end_and_a_set_at_a_cell() -> None:
+    recorded = source(storage_events())
+    assert recorded.state_at(5.0).cranes[1].handling == HandlingStep("pick", None, 2.0, 12.0)
+    expected = HandlingStep("set", tuple(CELL), 21.0, 31.0)
+    assert recorded.state_at(25.0).cranes[1].handling == expected
+
+
+def test_handling_is_the_same_reached_forward_or_backward() -> None:
+    recorded = source(storage_events())
+    forward = recorded.state_at(25.0).cranes[1].handling
+    recorded.state_at(40.0)
+    assert recorded.state_at(25.0).cranes[1].handling == forward
+
+
+def test_handling_changes_nothing_that_is_recorded() -> None:
+    state = source(storage_events()).state_at(25.0)
+    assert state.cranes[1].carrying is not None  # It stays on the crane until the event.
+    recorded = source(storage_events())
+    recorded.state_at(25.0)
+    assert recorded.cell(tuple(CELL)).load is None
+
+
+def test_handling_with_no_event_at_its_end_gives_no_step() -> None:
+    events = [row for row in storage_events() if row[1] != "load_set"]
+    recorded = source(events)
+    assert recorded.state_at(5.0).cranes[1].handling is not None
+    assert recorded.state_at(25.0).cranes[1].handling is None

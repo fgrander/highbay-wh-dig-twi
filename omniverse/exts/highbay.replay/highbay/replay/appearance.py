@@ -8,7 +8,7 @@ from typing import Any
 
 import carb
 import carb.settings
-from pxr import Gf, Sdf, UsdGeom, UsdLux
+from pxr import Gf, Sdf, UsdGeom, UsdLux, Vt
 
 from .core.crane_model import crane_carriage_usda, crane_mast_usda
 from .core.layout import RACK_MEMBER_THICKNESS_M, Bounds, Layout, Vector
@@ -210,7 +210,25 @@ def create_rack_prototypes(stage: Any, instancer_path: str, layout: Layout) -> t
     return upright, beam
 
 
-def create_crane(stage: Any, path: str, layout: Layout, detailed: bool = False) -> None:
+def _create_carried_pair(stage: Any, path: str, layout: Layout, prototypes: list[str]) -> None:
+    """Creates one instance of a stored load's shape, which moves with the carriage."""
+    instancer = UsdGeom.PointInstancer.Define(stage, path)
+    targets = instancer.CreatePrototypesRel()
+    for prototype in prototypes:
+        targets.AddTarget(prototype)
+    # At the height of a stored load, so that the forks fit below it.
+    instancer.CreatePositionsAttr(Vt.Vec3fArray([Gf.Vec3f(0.0, layout.cell_height / 2, 0.0)]))
+    instancer.CreateProtoIndicesAttr(Vt.IntArray([0]))
+    instancer.CreateVisibilityAttr(UsdGeom.Tokens.invisible)
+
+
+def create_crane(
+    stage: Any,
+    path: str,
+    layout: Layout,
+    detailed: bool = False,
+    load_prototypes: list[str] | None = None,
+) -> None:
     """Creates a crane: columns that move along the aisle, and a carriage that moves up them."""
     idle = activity_color("idle")
     crane = UsdGeom.Xform.Define(stage, path)
@@ -224,17 +242,15 @@ def create_crane(stage: Any, path: str, layout: Layout, detailed: bool = False) 
         _generated(
             stage, platform, crane_carriage_usda(layout), (0.0, 0.0, 0.0), idle, "crane_carriage"
         )
-        # At the height of a stored load, so that the forks fit below it.
-        carried_height = layout.cell_height / 2
-    else:
-        _box(stage, f"{path}/Mast", layout.mast_size(), center, idle, "crane_mast")
-        _box(stage, platform, layout.platform_size(), (0.0, 0.0, 0.0), idle, "crane_carriage")
-        carried_height = layout.carried_load_height()
+        _create_carried_pair(stage, f"{path}/Carriage/CarriedLoad", layout, load_prototypes or [])
+        return
+    _box(stage, f"{path}/Mast", layout.mast_size(), center, idle, "crane_mast")
+    _box(stage, platform, layout.platform_size(), (0.0, 0.0, 0.0), idle, "crane_carriage")
     carried = _box(
         stage,
         f"{path}/Carriage/CarriedLoad",
         layout.load_size(),
-        (0.0, carried_height, 0.0),
+        (0.0, layout.carried_load_height(), 0.0),
         color(ARTICLE_COLORS[0]),
         "load_unit",
     )
