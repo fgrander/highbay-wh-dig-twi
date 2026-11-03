@@ -36,9 +36,9 @@ All values in `samples/` are illustrative and are not real equipment data. Repla
 
 ## 3D replay
 
-![Cranes working through a growing backlog in aisle 1, replayed at 60x speed](docs/media/replay.gif)
+![A warehouse with loads of real sizes, replayed in Omniverse](docs/media/omniverse-overview.gif)
 
-The recording shows `samples/replay/overloaded-warehouse.yaml` in the default view. All numbers in this sample are placeholders. See also the [default view](docs/media/default-view.png) and the [highest backlog with a crane selected](docs/media/peak-backlog.png).
+The animation shows `samples/replay/real-size-warehouse.yaml` in the [Omniverse replay](#omniverse-replay). The browser replay looks like [this recording](docs/media/replay.gif) of `samples/replay/overloaded-warehouse.yaml` in the default view. All numbers in these samples are placeholders. See also the [default view](docs/media/default-view.png) and the [highest backlog with a crane selected](docs/media/peak-backlog.png).
 
 Add `--replay` to write `replay.json` next to the results, then open it:
 
