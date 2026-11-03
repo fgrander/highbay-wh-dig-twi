@@ -68,7 +68,6 @@ specs/005-omniverse-crane-load-models/
 ```text
 omniverse/
 ├── run-replay.ps1           # Changed: -LoadDefinitions
-├── highbay.replay.app.kit   # Changed: default settings
 ├── models/                  # Removed: generation moves into the extension
 └── exts/highbay.replay/
     ├── README.md            # Changed: placeholder dimensions, definitions, and what a pair counts as

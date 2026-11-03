@@ -64,6 +64,11 @@ A sample image shows both stacks as readable, with individual boards and bands, 
 - **Decision**: With detailed models, `pick_crane` uses a list of boxes for columns, travel gear, top beam, carriage ends, forks at their current extension, and the pair. They are computed from the same dimensions as the model, in one core module. A click through the opening between the columns does not select the crane. With simple models, the existing boxes stay in use, and the comparison with the browser viewer is unchanged.
 - **Rationale**: FR-005, and a test in Kit compares the boxes with the model's actual bounds, so that the two cannot drift apart.
 
+## Columns stand outside the whole cell length
+
+- **Decision**: The columns are positioned from the full cell length, not from the 0.85 share used for a single load in feature 004.
+- **Rationale**: Each half of a pair is centered at a quarter of the cell length. With the old position, a sample pair reached ±1.50 m, while the carriage's end frames started at ±1.43 m, so the load would pass through them.
+
 ## Forks must clear the rack beams
 
 - **Decision**: Forks sit between the top of a rack beam and the bottom of the pair, so their height is derived from the layout: from half a rack member above the carriage's height, plus a small gap, up to the pair's bottom. In the sample, this gives about 6 cm. The rack member's thickness moves from `appearance.py` to `layout.py` for this.

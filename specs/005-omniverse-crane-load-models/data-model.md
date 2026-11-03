@@ -44,10 +44,10 @@ Computed from the layout, and the only source of crane sizes for both the model 
 
 | Value | Rule |
 |---|---|
-| Column position | ± (load length / 2 + clearance + column width / 2), with the load length as in feature 004 |
+| Column position | ± (cell length / 2 + clearance + column width / 2), so that any pair that fits a cell fits between the carriage's end frames |
 | Section position | ± cell length / 4, which is the center of each half of a cell |
 | Fork top | The bottom of a stored pair above the cell's floor, (1 − 0.85) / 2 × cell height |
-| Fork bottom | Half a rack member above the cell's floor, plus a gap of 5 mm |
+| Fork bottom | Half a rack member above the cell's floor, plus a gap of 5 mm. If this leaves forks thinner than 2 cm, it moves down until they are 2 cm thick, and they may then touch the beam in that warehouse |
 | Reach | (aisle width + cell width) / 2 |
 
 Other values are fixed placeholders in the module, listed in the extension's README.
@@ -105,6 +105,10 @@ Changes to the scene in feature 004, with detailed models:
 Prototypes for undefined articles are pairs of two simple boxes in the article's color, one per color in feature 004's sequence. With simple models, the scene stays as in feature 004.
 
 The attributes of the fork stages are written as attribute specs, as for other per-frame values. If a file replaces the carriage and has no such stages, the forks do not move, and the pair's offset stays 0.
+
+### Selection outline
+
+With detailed models, the outline of a selected crane or carried pair surrounds the load space: a cell-sized box whose floor is at the carriage's height, so its center is half a cell's height above the recorded position.
 
 ### Stored instances
 

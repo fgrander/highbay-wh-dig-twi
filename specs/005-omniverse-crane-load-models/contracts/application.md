@@ -77,6 +77,7 @@ With `simple` models, or for an undefined article, the `Pair` line is left out.
 - With detailed models, a click selects a crane if it hits a box as in [data-model.md](../data-model.md). A click through the opening between its columns goes on to what lies behind.
 - The order stays as in feature 004: a crane, otherwise a load unit, otherwise a cell.
 - With `simple` models, selection is as in feature 004.
+- During a handling step, the recording decides what a click selects, as it does for the figures. During a pick, a click on the cell that looks empty still selects its load unit, until the recorded event. A click that hits the crane's boxes, including a pair on or beside its forks, selects the crane first.
 
 ## Not changed
 

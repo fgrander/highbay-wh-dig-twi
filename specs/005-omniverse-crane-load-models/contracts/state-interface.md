@@ -16,4 +16,4 @@ It defaults to None, so a source written for version 1 needs no change, and its 
 
 - `handling` depends only on the time and the data, like the rest of a run state.
 - It does not change what the source reports. During a pick, `carrying` stays None and the cell stays occupied until the recorded event, so all figures and details stay as they were.
-- `RecordedSource` raises `StateSourceError` when opening a recording if a `load_picked` or `load_set` event has no `handling` activity of its crane ending at the event's time.
+- A `handling` activity with no `load_picked` or `load_set` event of its crane at its end gives `handling` = None, and the forks stay at rest. This is not an error, as such a file opens in the browser viewer too.
