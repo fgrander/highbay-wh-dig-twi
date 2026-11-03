@@ -38,7 +38,10 @@ async def main(arguments: dict[str, Any]) -> dict[str, Any]:
 
     started = time.perf_counter()
     assert controller.open_run_folder(arguments["run_folder"]), controller.message
-    results: dict[str, Any] = {"open_s": time.perf_counter() - started}
+    results: dict[str, Any] = {
+        "open_s": time.perf_counter() - started,
+        "warnings": controller.window.warnings_text,
+    }
 
     # By default the viewport follows its frame's size, which would make the measurement too kind.
     viewport.fill_frame = False

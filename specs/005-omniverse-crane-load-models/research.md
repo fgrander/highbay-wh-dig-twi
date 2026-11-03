@@ -117,7 +117,7 @@ A prototype with 100,000 cells, 30% of them hidden, 8 load prototypes each with 
 
 ## Open observation: the sky's color
 
-Across windowless Kit runs with the same settings, the background was either gray or black for a whole run: 3 runs of the same recording gave gray once and black twice. This changes only the background, and its cause is not known. It may come from how the dome light starts up, and needs a look if it also appears with a window.
+Across windowless Kit runs with the same settings, the background was either gray or black for a whole run: 3 runs of the same recording gave gray once and black twice. This changes only the background. Logs of gray and black runs show no difference that explains it, so its cause is not known. Whether it appears with a window is to be seen in the test by hand.
 
 ## Sharing prototypes between instancers
 
@@ -127,3 +127,29 @@ Across windowless Kit runs with the same settings, the background was either gra
 
 - **Decision**: Boards are darker than first tried, with a linear color of (0.36, 0.22, 0.10), and paper is a slightly cool white.
 - **Rationale**: Under the aisle light, boards with the first color of (0.62, 0.45, 0.27) looked nearly as pale as paper from above. These colors are placeholders, and a definition can set its own.
+
+## Measured targets
+
+Measured on 2026-11-03, once each, without a window, at 1920×1080 in RTX Real-Time mode, with the whole warehouse in view, playing at 600×, with the frame limiter and eco mode off, and with all detailed models. The first two rows come from `tests/performance/test_omniverse_performance.py`. The third is a separate measurement of the planning target with its free cells filled, as the planning target itself is nearly empty, and detailed loads cost the most when all are stored.
+
+| Case | Opening | Frames per second | Slowest frame | Slowest move to a time |
+|---|---|---|---|---|
+| Small sample, 3,200 cells (SC-006) | 1.3 s | 153 | 24 ms | 0.082 s |
+| Planning target, 100,000 cells (SC-006, SC-007) | 11.7 s | 20.9 | 431 ms | 1.082 s |
+| Planning target with 95,841 of its 100,000 cells filled at the start | 14.6 s | 24.4 | 286 ms | 3.905 s |
+
+All targets of this feature are met, by a wide margin. Compared with feature 004, the frame rate fell from 192 to 153 and from 32 to 20.9.
+
+**Limits**: These are single runs. A visible window with the whole application has not been measured. The rise of the slowest frame from 39 ms to 431 ms has not been explained, though it did not get worse with a full warehouse. Moving to a time with a full warehouse takes up to 3.9 s, as all stock is redrawn when moving backward. This feature sets no limit for it, and SC-005 of feature 004 only sets one for the small sample. Filled cells used loads from the data in the test, not real sizes, as the planning target's cells are 3.2 m long.
+
+## Changing a definition
+
+Measured for SC-009: with the count of boards changed in a copy of the definitions, it took 9.8 s, without a window, from starting the application to an open run that had stacks of the new height, from 0.57 m to 1.14 m. With a window, feature 004 measured 10.6 s to an open run. Together with editing a line, this stays well under 5 minutes. Nobody has timed a person doing this.
+
+## Test by hand
+
+On 2026-11-03, the project owner went through `quickstart.md` S2 to S7 in a visible window, on `out/real-size` and `out/small`, and all of it worked: crane, selection by clicks, buttons, time slider, speed, mouse camera, forks in both directions, loads and details, warnings in the window, simple shapes, and closing the application. It ran smoothly for the project owner, which is an impression, not a measurement. The background was black in this window. The case of a load that does not fit its cell, and a definitions path that does not exist, were not part of this and are covered by automated tests only.
+
+## Decisions after the test by hand
+
+The project owner accepts the black background, so it stays as a known point. The project owner also decided not to add logging to the intermittent viewer test for now, so its cause stays unknown.

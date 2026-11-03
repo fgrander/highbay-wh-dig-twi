@@ -27,11 +27,40 @@ LARGE_MIN_FPS = 10.0
 LARGE_MAX_OPEN_S = 300.0
 MAX_MOVE_S = 1.0
 LARGE_TIME_LIMIT_S = 900.0
+# The planning target's cells are 3.2 m long and 1.5 m wide, so it needs smaller loads.
+PLANNING_TARGET_LOADS = """
+[types.board]
+kind = "board_stack"
+length_m = 3.0
+width_m = 1.25
+smallest_part_m = 1.0
+count = 30
+thickness_m = 0.019
+
+[types.paper]
+kind = "paper_pallet"
+length_m = 3.0
+width_m = 1.25
+count = 1000
+thickness_m = 0.0003
+base_thickness_m = 0.03
+
+[loads]
+"A" = [{ type = "paper" }]
+"B" = [{ type = "board", length_m = 1.2 }, { type = "board", length_m = 1.8 }]
+"""
 
 
-def measure(folder: Path, work: Path, time_limit_s: float = 420.0) -> dict[str, Any]:
+def measure(
+    folder: Path, work: Path, time_limit_s: float = 420.0, settings: tuple[str, ...] = ()
+) -> dict[str, Any]:
     found = run_kit_script(
-        SCRIPT, {"run_folder": str(folder)}, work, settings=SETTINGS, time_limit_s=time_limit_s
+        SCRIPT,
+        {"run_folder": str(folder)},
+        work,
+        settings=[*SETTINGS, *settings],
+        time_limit_s=time_limit_s,
+        models="detailed",
     )
     assert "script_error" not in found, found.get("script_error")
     assert found["resolution"] == [1920, 1080]
@@ -65,7 +94,19 @@ def large(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Any]:
     root = tmp_path_factory.mktemp("large")
     (root / "run").mkdir()
     write_planning_target(root / "run")
-    return measure(root / "run", root, LARGE_TIME_LIMIT_S)
+    definitions = root / "loads.toml"
+    definitions.write_text(PLANNING_TARGET_LOADS, encoding="utf-8")
+    return measure(
+        root / "run",
+        root,
+        LARGE_TIME_LIMIT_S,
+        (f"--/exts/highbay.replay/load_definitions={definitions}",),
+    )
+
+
+def test_all_loads_are_detailed(small: dict[str, Any], large: dict[str, Any]) -> None:
+    assert small["warnings"] == []
+    assert large["warnings"] == []
 
 
 def test_small_warehouse_frame_rate(small: dict[str, Any]) -> None:

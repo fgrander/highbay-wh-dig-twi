@@ -65,7 +65,7 @@ Objects are simple shapes for now. To use detailed models, change `src/highbay_s
 
 ## Omniverse replay
 
-![A run at its highest backlog in Omniverse, with crane 1 selected](docs/media/omniverse-replay.png)
+![A crane in a full aisle in Omniverse, with stacks of particle boards and paper pallets](docs/media/omniverse-loads.jpg)
 
 A recorded run from either simulation mode can also be replayed in NVIDIA Omniverse with RTX rendering. It reads the same `replay.json` and changes no files. The simulation and the browser replay work without any of this.
 
@@ -90,9 +90,18 @@ The first start compiles shaders, which can take several minutes, and later star
 
 The **Highbay Replay** panel beside **Property** has the same controls, figures, and legend as the browser replay. A click in the view selects a crane, or the first load unit along that line, or otherwise a cell, and a click on empty space clears the selection. Kit's own controls move the camera. Kit's selection of objects in the view is switched off.
 
-At 1920×1080 with the whole warehouse in view, and with Kit's frame limiter off, one measurement without a window gave 192 frames per second on the small sample and 32 on a warehouse with 100,000 cells. See [the research notes](specs/004-omniverse-run-replay/research.md) for the details and limits.
+At 1920×1080 with the whole warehouse in view, and with Kit's frame limiter off, one measurement without a window with all detailed models gave 153 frames per second on the small sample and 20.9 on a warehouse with 100,000 cells, and 24.4 with nearly all of those cells filled. See [the research notes](specs/005-omniverse-crane-load-models/research.md) for the details and limits.
 
-Objects are simple shapes. To use detailed models, see [the extension's notes](omniverse/exts/highbay.replay/README.md). To connect another source of run state, such as a later live connection, see [the state interface](specs/004-omniverse-run-replay/contracts/state-interface.md). See also [the application contract](specs/004-omniverse-run-replay/contracts/application.md).
+Cranes have two columns with the load between them, and two fork sections that extend during recorded handling. Each cell shows a paper pallet, or a whole or split stack of particle boards, as defined per article in a data file. To see this with the real load sizes:
+
+```text
+uv run highbay-sim run samples/replay/real-size-warehouse.yaml samples/replay/real-size-scenario.yaml --output out/real-size --replay
+powershell -ExecutionPolicy Bypass -File omniverse/run-replay.ps1 out/real-size
+```
+
+To the simulation, a load is always one article and one order, whole or split, so throughput figures count loads. This is why result files keep saying that multi-load handling is not modeled. The cells, crane, and stack heights of that sample are placeholders, so its results say nothing about a real warehouse yet.
+
+To change sizes, definitions, or models, see [the extension's notes](omniverse/exts/highbay.replay/README.md). To connect another source of run state, such as a later live connection, see [the state interface](specs/004-omniverse-run-replay/contracts/state-interface.md). See also [the application contract](specs/004-omniverse-run-replay/contracts/application.md) and [its changes](specs/005-omniverse-crane-load-models/contracts/application.md).
 
 ## Input files
 

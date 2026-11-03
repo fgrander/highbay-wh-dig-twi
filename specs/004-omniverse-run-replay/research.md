@@ -105,3 +105,7 @@ Kit's viewport grid and light icon stay visible. Both can be switched off in the
 ## Data collection
 
 - **Decision**: `highbay.replay.app.kit` sets `telemetry.enableAnonymousData = false`, as the project owner decided. `setup.ps1` sets the same value in the template's generated application, so that no application in the setup collects data. The README states this.
+
+## Test by hand
+
+On 2026-11-03, on the branch of feature 005, the project owner confirmed that the buttons, the time slider, the speed choice, and the mouse camera work in a visible window. S7 of feature 005's quickstart showed the simple shapes of this feature in a visible window too.

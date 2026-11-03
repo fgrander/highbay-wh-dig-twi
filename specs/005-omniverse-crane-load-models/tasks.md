@@ -150,12 +150,12 @@ description: "Task list for the Omniverse crane and load models"
 
 **Purpose**: Performance proof, documentation, and final validation
 
-- [ ] T042 Pass `models="detailed"` in `tests/performance/test_omniverse_performance.py`, and run it with the small sample and the warehouse with 100,000 cells (SC-006, SC-007). Record results and limits in `research.md`. If a target is missed, report the numbers to the project owner before changing any target
-- [ ] T043 [P] Time the steps of `quickstart.md` S5 from changing a stack's size to seeing it (SC-009), and record this in `research.md`
-- [ ] T044 [P] Update `EXT/README.md`: all placeholder dimensions and where to change them, the definitions file, the rules for files, and that a carriage needs `Section1` and `Section2` with `Middle` and `Top` to move (FR-018)
-- [ ] T045 [P] Update `README.md` with the crane, loads, the settings, and a new image in `docs/media/`. State that a load is one article and one order to the simulation, so that throughput figures count loads, and that this is why result files keep saying that multi-load handling is not modeled (FR-018)
-- [ ] T046 Run all checks: `uv run pytest`, `uv run pytest -m omniverse`, the core tests under Kit's Python 3.12, `ruff`, and `mypy`, and confirm that reference results are unchanged (SC-008) and that no `kit` process is left
-- [ ] T047 Go through `quickstart.md` S2 to S7 with the project owner, in a visible window, as buttons, the slider, and the mouse camera have not been tested by hand in this project yet
+- [X] T042 Pass `models="detailed"` in `tests/performance/test_omniverse_performance.py`, and run it with the small sample and the warehouse with 100,000 cells (SC-006, SC-007). Record results and limits in `research.md`. If a target is missed, report the numbers to the project owner before changing any target
+- [X] T043 [P] Time the steps of `quickstart.md` S5 from changing a stack's size to seeing it (SC-009), and record this in `research.md`
+- [X] T044 [P] Update `EXT/README.md`: all placeholder dimensions and where to change them, the definitions file, the rules for files, and that a carriage needs `Section1` and `Section2` with `Middle` and `Top` to move (FR-018)
+- [X] T045 [P] Update `README.md` with the crane, loads, the settings, and a new image in `docs/media/`. State that a load is one article and one order to the simulation, so that throughput figures count loads, and that this is why result files keep saying that multi-load handling is not modeled (FR-018)
+- [X] T046 Run all checks: `uv run pytest`, `uv run pytest -m omniverse`, the core tests under Kit's Python 3.12, `ruff`, and `mypy`, and confirm that reference results are unchanged (SC-008) and that no `kit` process is left
+- [X] T047 Go through `quickstart.md` S2 to S7 with the project owner, in a visible window, as buttons, the slider, and the mouse camera have not been tested by hand in this project yet
 
 ---
 
