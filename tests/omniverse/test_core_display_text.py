@@ -136,3 +136,32 @@ def test_cell() -> None:
     instance = source()
     instance.state_at(0.0)
     assert cell_details(instance, tuple(CELL)) == ["Cell: 1-1-3-2", "Cell state: free"]
+
+
+def describe_load(article: int) -> str | None:
+    return {0: "board 2.1 m + board 3.5 m", 1: None}[article]
+
+
+def test_details_of_a_stored_load_say_what_it_is_after_the_article() -> None:
+    instance = source()
+    instance.state_at(0.0)
+    plain = load_details(instance, "i0")
+    described = load_details(instance, "i0", lambda _article: "paper")
+    assert described[0] == plain[0]
+    assert described[1] == "Load: paper"
+    assert described[2:] == plain[1:]
+
+
+def test_details_of_an_undefined_article_stay_as_they_were() -> None:
+    instance = source()
+    instance.state_at(0.0)
+    assert load_details(instance, "i0", lambda _article: None) == load_details(instance, "i0")
+
+
+def test_details_of_a_crane_say_what_it_carries() -> None:
+    instance = source(storage_events())
+    state = instance.state_at(15.0)
+    plain = crane_details(instance, state, 1)
+    described = crane_details(instance, state, 1, describe_load)
+    assert described[: len(plain)] == plain
+    assert described[len(plain) :] == ["Load: board 2.1 m + board 3.5 m"]

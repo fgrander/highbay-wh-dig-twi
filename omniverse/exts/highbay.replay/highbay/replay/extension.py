@@ -5,6 +5,7 @@ be connected with `open_source`. See contracts/state-interface.md.
 """
 
 import asyncio
+from pathlib import Path
 from typing import Any
 
 import carb
@@ -14,8 +15,10 @@ import omni.kit.app
 import omni.usd
 from omni.kit.viewport.utility import get_active_viewport
 
+from . import appearance
 from .core.display_text import cell_details, crane_details, load_details
 from .core.layout import Vector
+from .core.load_definitions import read_load_definitions
 from .core.picking import Selection, select_at
 from .core.playback import Playback
 from .core.recorded_source import open_recording
@@ -26,6 +29,8 @@ from .window import ReplayWindow
 
 RUN_FOLDER_SETTING = "/exts/highbay.replay/run_folder"
 MODELS_SETTING = "/exts/highbay.replay/models"
+LOAD_DEFINITIONS_SETTING = "/exts/highbay.replay/load_definitions"
+DEFAULT_LOAD_DEFINITIONS = Path(__file__).parents[2] / "data" / "load_definitions.toml"
 FRAMES_BEFORE_FIRST_RUN = 10
 
 _controller: "ReplayController | None" = None
@@ -81,8 +86,15 @@ class ReplayController:
         description = source.describe()
         context = omni.usd.get_context()
         context.new_stage()
-        models = carb.settings.get_settings().get(MODELS_SETTING) or MODELS_DETAILED
-        self.scene = WarehouseScene(context.get_stage(), description, models)
+        settings = carb.settings.get_settings()
+        models = settings.get(MODELS_SETTING) or MODELS_DETAILED
+        # Read at each opening, so that a change shows when a run is opened again.
+        definitions = None
+        if models == MODELS_DETAILED:
+            definitions = read_load_definitions(
+                settings.get(LOAD_DEFINITIONS_SETTING) or DEFAULT_LOAD_DEFINITIONS
+            )
+        self.scene = WarehouseScene(context.get_stage(), description, models, definitions)
         self.source = source
         self.playback = Playback(source)
         self.selection = None
@@ -95,6 +107,7 @@ class ReplayController:
             True, source.can_move_backward, description.reported is not None
         )
         self.window.show_run(folder, description)
+        self.window.show_warnings(list(appearance.look_warnings))
         self._viewport_click = ViewportClick(self.select_along_ray)
         self._show_state()
 
@@ -156,13 +169,13 @@ class ReplayController:
 
     def _selection_details(self, state: RunState) -> list[str]:
         selection = self.selection
-        if selection is None or self.source is None:
+        if selection is None or self.source is None or self.scene is None:
             return []
         if selection.kind == "crane":
-            return crane_details(self.source, state, selection.aisle)
+            return crane_details(self.source, state, selection.aisle, self.scene.load_description)
         if selection.kind == "cell":
             return cell_details(self.source, selection.location)
-        return load_details(self.source, selection.key)
+        return load_details(self.source, selection.key, self.scene.load_description)
 
     def _carried_load(self, state: RunState) -> str | None:
         if self.selection is None or self.selection.kind != "crane":

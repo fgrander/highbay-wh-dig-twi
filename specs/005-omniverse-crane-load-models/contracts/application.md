@@ -38,7 +38,7 @@ length_m = 5.61
 width_m = 2.08
 count = 1000
 thickness_m = 0.0003
-pallet_height_m = 0.144
+base_thickness_m = 0.03
 
 [types.my_scanned_stack]
 kind = "file"

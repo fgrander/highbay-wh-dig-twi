@@ -1,4 +1,4 @@
-"""Fork and pair positions in a handling step, with values worked out by hand.
+"""Fork and load positions in a handling step, with values worked out by hand.
 
 Cells are 1.0 m wide and aisles too, so each rack's center is (1 + 1) / 2 = 1 m from the aisle's.
 Rack 1 lies towards -z. A step lasts 10 s from t = 100 s, so extending ends at 104 s, and returning
@@ -57,12 +57,12 @@ def test_forks_extend_towards_the_cells_rack_and_return(
     ("time_s", "offset"),
     [(100.0, -1.0), (102.0, -1.0), (105.0, -1.0), (106.0, -1.0), (108.0, -0.5), (109.9, -0.025)],
 )
-def test_picked_pair_waits_in_the_cell_and_returns_with_the_forks(
+def test_picked_load_waits_in_the_cell_and_returns_with_the_forks(
     time_s: float, offset: float
 ) -> None:
     pose = fork_pose(step("pick", RACK_1), time_s, LAYOUT)
-    assert pose.pair_offset_m == pytest.approx(offset)
-    assert pose.pair_on_crane
+    assert pose.load_offset_m == pytest.approx(offset)
+    assert pose.load_on_crane
     assert pose.hidden_cell == RACK_1
 
 
@@ -70,12 +70,12 @@ def test_picked_pair_waits_in_the_cell_and_returns_with_the_forks(
     ("time_s", "offset"),
     [(100.0, 0.0), (102.0, 0.5), (104.0, 1.0), (106.0, 1.0), (108.0, 1.0), (109.9, 1.0)],
 )
-def test_set_pair_goes_out_with_the_forks_and_stays_at_the_cell(
+def test_set_load_goes_out_with_the_forks_and_stays_at_the_cell(
     time_s: float, offset: float
 ) -> None:
     pose = fork_pose(step("set", RACK_2), time_s, LAYOUT)
-    assert pose.pair_offset_m == pytest.approx(offset)
-    assert pose.pair_on_crane
+    assert pose.load_offset_m == pytest.approx(offset)
+    assert pose.load_on_crane
     assert pose.hidden_cell is None  # The recording still has it on the crane.
 
 
@@ -87,8 +87,8 @@ def test_forks_rest_at_an_aisle_end(kind: str) -> None:
 def test_forks_rest_with_no_step() -> None:
     assert fork_pose(None, 105.0, LAYOUT) == REST
     assert REST.extension_m == 0.0
-    assert REST.pair_offset_m == 0.0
-    assert not REST.pair_on_crane
+    assert REST.load_offset_m == 0.0
+    assert not REST.load_on_crane
     assert REST.hidden_cell is None
 
 

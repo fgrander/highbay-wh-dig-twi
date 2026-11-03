@@ -13,6 +13,7 @@ from . import appearance
 from .core.crane_dimensions import crane_boxes, crane_dimensions
 from .core.fork_motion import REST, ForkPose, fork_pose
 from .core.layout import Box, Vector, create_layout
+from .core.load_definitions import LoadDefinitions, ShownLoad, resolve_loads
 from .core.state_source import CellChanges, RunState, StateSource, WarehouseDescription
 
 WORLD = "/World"
@@ -60,7 +61,8 @@ class _Crane:
         self.activity: str | None = None
         self.carrying: str | None = None
         self.extension = 0.0
-        self.pair_offset = 0.0
+        self.load_offset = 0.0
+        self.load_size: Vector | None = None
 
     @staticmethod
     def _writable(stage: Any, path: str) -> Any:
@@ -75,7 +77,11 @@ class _Crane:
 
 class WarehouseScene:
     def __init__(
-        self, stage: Any, description: WarehouseDescription, models: str = "simple"
+        self,
+        stage: Any,
+        description: WarehouseDescription,
+        models: str = "simple",
+        definitions: LoadDefinitions | None = None,
     ) -> None:
         self.stage = stage
         self.detailed = models == MODELS_DETAILED
@@ -83,6 +89,16 @@ class WarehouseScene:
         self._crane_size = crane_dimensions(self.layout)
         self.bounds = self.layout.bounds()
         appearance.look_warnings.clear()
+        self._article_loads: list[ShownLoad | None] = []
+        self._distinct_loads: list[ShownLoad] = []
+        if self.detailed:
+            appearance.warn_if_load_look_is_set()
+            self._article_loads, warnings = resolve_loads(
+                definitions or LoadDefinitions({}, {}, []), description.articles, self.layout
+            )
+            appearance.warn_about_load_files(warnings)
+            # One prototype for each distinct load, in the order of the articles.
+            self._distinct_loads = list(dict.fromkeys(load for load in self._article_loads if load))
         UsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.y)
         UsdGeom.SetStageMetersPerUnit(stage, 1.0)
         stage.SetDefaultPrim(UsdGeom.Xform.Define(stage, WORLD).GetPrim())
@@ -146,7 +162,12 @@ class WarehouseScene:
         layout = self.layout
         instancer = UsdGeom.PointInstancer.Define(self.stage, LOADS)
         targets = instancer.CreatePrototypesRel()
-        prototypes = appearance.create_load_prototypes(self.stage, LOADS, layout)
+        if self.detailed:
+            prototypes = appearance.create_detailed_load_prototypes(
+                self.stage, LOADS, layout, self._distinct_loads
+            )
+        else:
+            prototypes = appearance.create_load_prototypes(self.stage, LOADS, layout)
         for path in prototypes:
             targets.AddTarget(path)
         positions = [Gf.Vec3f(*layout.cell_box(cell).center) for cell in layout.cells()]
@@ -208,10 +229,22 @@ class WarehouseScene:
                 aisle,
                 crane.position,
                 pose.extension_m,
-                pose.pair_offset_m,
-                crane.carrying is not None or pose.pair_on_crane,
+                pose.load_offset_m,
+                crane.carrying is not None or pose.load_on_crane,
+                self._cranes[aisle].load_size,
             ).values()
         )
+
+    def load_description(self, article: int) -> str | None:
+        """Says what an article's load is, or gives None if nothing is defined for it."""
+        load = self._article_loads[article] if article < len(self._article_loads) else None
+        return load.label if load else None
+
+    def _prototype_of(self, article: int) -> int:
+        load = self._article_loads[article] if article < len(self._article_loads) else None
+        if load is None:
+            return appearance.article_prototype(article)
+        return len(appearance.ARTICLE_COLORS) + self._distinct_loads.index(load)
 
     def crane_highlight_point(self, aisle: int, position: tuple[float, float]) -> Vector:
         """Returns the center of the outline around a crane or the load that it carries."""
@@ -259,7 +292,7 @@ class WarehouseScene:
         if self._prototypes_changed:
             self._prototypes_spec.default = Vt.IntArray(self._prototypes)
             self._prototypes_changed = False
-        # A pair on its way out of a cell shows on the crane, and the recording moves it later.
+        # A load on its way out of a cell shows on the crane, and the recording moves it later.
         lifted = [
             layout.cell_instance(pose.hidden_cell)
             for pose in self._poses.values()
@@ -276,7 +309,7 @@ class WarehouseScene:
             self._invisible_spec.default = Vt.Int64Array(hidden)
 
     def _set_prototype(self, instance: int, article: int) -> None:
-        prototype = appearance.article_prototype(article)
+        prototype = self._prototype_of(article)
         if self._prototypes[instance] != prototype:
             self._prototypes[instance] = prototype
             self._prototypes_changed = True
@@ -325,11 +358,11 @@ class WarehouseScene:
                 specs.carried_visibility.default = UsdGeom.Tokens.invisible
             else:
                 specs.carried_visibility.default = UsdGeom.Tokens.inherited
-                specs.carried_prototypes.default = Vt.IntArray(
-                    [appearance.article_prototype(shown.article)]
-                )
-        if pose.pair_offset_m != specs.pair_offset:
-            specs.pair_offset = pose.pair_offset_m
+                specs.carried_prototypes.default = Vt.IntArray([self._prototype_of(shown.article)])
+                load = self._article_loads[shown.article]
+                specs.load_size = load.size if load else None
+        if pose.load_offset_m != specs.load_offset:
+            specs.load_offset = pose.load_offset_m
             specs.carried_positions.default = Vt.Vec3fArray(
-                [Gf.Vec3f(0.0, self.layout.cell_height / 2, pose.pair_offset_m)]
+                [Gf.Vec3f(0.0, self.layout.cell_height / 2, pose.load_offset_m)]
             )

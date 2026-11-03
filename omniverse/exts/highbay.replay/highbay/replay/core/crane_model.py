@@ -12,7 +12,9 @@ the crane's activity color, which they inherit from the top prim. Looking along 
 else of a crane can be seen.
 """
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
+from typing import Any
 
 from . import crane_dimensions as sizes
 from .crane_dimensions import CraneDimensions, crane_dimensions
@@ -36,7 +38,7 @@ TOP_ROLLER_WIDTH_M = 0.16
 TOP_ROLLER_DEPTH_M = 0.08
 
 
-def _vector(values: tuple[float, ...]) -> str:
+def vector(values: tuple[float, ...]) -> str:
     return "(" + ", ".join(f"{value:.6g}" for value in values) + ")"
 
 
@@ -59,8 +61,8 @@ def box(
 {{
     double size = 1
     float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]{binding}
-    double3 xformOp:translate = {_vector(center)}
-    float3 xformOp:scale = {_vector(size)}
+    double3 xformOp:translate = {vector(center)}
+    float3 xformOp:scale = {vector(size)}
     uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
 }}"""
 
@@ -75,18 +77,18 @@ def wheel(name: str, center: tuple[float, float, float], material: str) -> str:
     double height = {sizes.WHEEL_WIDTH_M}
     double radius = {radius}
     float3[] extent = [(-{radius}, -{radius}, -{half}), ({radius}, {radius}, {half})]{binding}
-    double3 xformOp:translate = {_vector(center)}
+    double3 xformOp:translate = {vector(center)}
     uniform token[] xformOpOrder = ["xformOp:translate"]
 }}"""
 
 
-def _indented(text: str) -> str:
+def indented(text: str) -> str:
     return "\n".join("    " + line if line else line for line in text.splitlines())
 
 
 def group(name: str, parts: list[str]) -> str:
     """Returns a movable group of parts, whose translate starts at zero."""
-    children = "\n\n".join(_indented(part) for part in parts)
+    children = "\n\n".join(indented(part) for part in parts)
     return f"""def Xform "{name}"
 {{
     double3 xformOp:translate = (0, 0, 0)
@@ -99,6 +101,7 @@ def group(name: str, parts: list[str]) -> str:
 @dataclass
 class Model:
     parts: list[str] = field(default_factory=list)
+    materials: Mapping[str, Any] = field(default_factory=lambda: MATERIALS)
 
     def text(self) -> str:
         materials = "\n\n".join(
@@ -109,16 +112,16 @@ class Model:
     def Shader "Shader"
     {{
         uniform token info:id = "UsdPreviewSurface"
-        color3f inputs:diffuseColor = {_vector(color)}
+        color3f inputs:diffuseColor = {vector(color)}
         float inputs:metallic = {metallic}
         float inputs:roughness = {roughness}
         token outputs:surface
     }}
 }}"""
-            for name, (color, metallic, roughness) in MATERIALS.items()
+            for name, (color, metallic, roughness) in self.materials.items()
         )
-        scope = f'def Scope "Materials"\n{{\n{_indented(materials)}\n}}'
-        body = "\n\n".join(_indented(part) for part in [scope, *self.parts])
+        scope = f'def Scope "Materials"\n{{\n{indented(materials)}\n}}'
+        body = "\n\n".join(indented(part) for part in [scope, *self.parts])
         return f"""#usda 1.0
 (
     defaultPrim = "Look"

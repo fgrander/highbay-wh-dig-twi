@@ -63,7 +63,7 @@ Other values are fixed placeholders in the module, listed in the extension's REA
 | `smallest_part_m` | float | Above 0, for `board_stack`. Optional, and without it the type cannot be split |
 | `count` | int | Above 0, for the stack kinds |
 | `thickness_m` | float | Above 0, for the stack kinds. The stack's height is `count` × `thickness_m` |
-| `pallet_height_m` | float | Above 0, for `paper_pallet`, and added to the stack's height |
+| `base_thickness_m` | float | Above 0, for `paper_pallet`: the base board below the paper, added to the stack's height |
 | `color`, `edge_color` | `#rrggbb` | Optional, for the stack kinds |
 | `file` | path | For `file`. Relative paths start at the definitions file's folder |
 | `height_m` | float | Above 0, for `file` |

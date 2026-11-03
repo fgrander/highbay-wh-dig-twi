@@ -6,7 +6,7 @@ follow from the warehouse are the constants below. Heights are above the floor o
 
 from dataclasses import dataclass
 
-from .layout import RACK_MEMBER_THICKNESS_M, Box, Layout
+from .layout import RACK_MEMBER_THICKNESS_M, Box, Layout, Vector
 
 COLUMN_WIDTH_M = 0.34
 COLUMN_DEPTH_M = 0.5
@@ -42,6 +42,8 @@ MINIMUM_FORK_THICKNESS_M = 0.02
 STAGE_WIDTH_M = 0.07
 FORK_LENGTH_SHARE = 0.85
 TINE_SPACING_SHARE = 0.075
+# In a long cell, each section stands where every part of a split stack covers it.
+SECTION_FROM_END_M = 0.85
 
 BOGIE_TOP_M = WHEEL_RADIUS_M + BOGIE_HEIGHT_M
 TRAVEL_GEAR_HEIGHT_M = BOGIE_TOP_M + BOGIE_STRIPE_HEIGHT_M
@@ -85,14 +87,14 @@ class CraneDimensions:
 
 def crane_dimensions(layout: Layout) -> CraneDimensions:
     column_x = layout.cell_length / 2 + COLUMN_CLEARANCE_M + COLUMN_WIDTH_M / 2
-    fork_top = layout.pair_base_height()
+    fork_top = layout.load_base_height()
     fork_bottom = min(
         RACK_MEMBER_THICKNESS_M / 2 + FORK_GAP_ABOVE_BEAM_M, fork_top - MINIMUM_FORK_THICKNESS_M
     )
     return CraneDimensions(
         height=layout.height,
         column_x=column_x,
-        section_x=layout.cell_length / 4,
+        section_x=max(layout.cell_length / 4, layout.cell_length / 2 - SECTION_FROM_END_M),
         reach=(layout.aisle_width + layout.cell_width) / 2,
         fork_top=fork_top,
         fork_bottom=fork_bottom,
@@ -124,8 +126,9 @@ def crane_boxes(
     aisle: int,
     position: tuple[float, float],
     extension: float = 0.0,
-    pair_offset: float = 0.0,
+    load_offset: float = 0.0,
     carrying: bool = False,
+    load_size: Vector | None = None,
 ) -> dict[str, Box]:
     """Returns what a crane occupies at a position, by part, for selection."""
     x, y, z = layout.crane_world_position(aisle, position)
@@ -179,5 +182,6 @@ def crane_boxes(
             (frame_width, frame_height, END_FRAME_DEPTH_M),
         )
     if carrying:
-        boxes["Pair"] = Box((x, y + size.cell_height / 2, z + pair_offset), layout.load_size())
+        shown = load_size or layout.load_size()
+        boxes["Load"] = Box((x, y + size.fork_top + shown[1] / 2, z + load_offset), shown)
     return boxes

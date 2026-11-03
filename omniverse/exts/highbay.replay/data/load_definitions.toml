@@ -1,0 +1,60 @@
+# What each article's load looks like in the Omniverse replay. Read each time a run is opened.
+#
+# A load is one unit, or two parts of a split stack, end to end along the aisle. To the simulation,
+# it is always one article and one order, so throughput figures count loads.
+#
+# Real values, from the project owner: the length and width of paper, and of particle boards, with
+# their smallest part, and the base board of 30 mm below the paper. Counts and the thickness of sheets
+# and boards are placeholders.
+
+[types.particle_board]
+kind = "board_stack"
+length_m = 5.6
+width_m = 2.07
+smallest_part_m = 1.5
+count = 30          # Placeholder
+thickness_m = 0.019 # Placeholder
+
+[types.paper_pallet]
+kind = "paper_pallet"
+length_m = 5.61
+width_m = 2.08
+count = 1000            # About 1000 sheets
+thickness_m = 0.0003    # Placeholder
+base_thickness_m = 0.03 # The base board below the paper
+
+# Smaller types for the sample warehouses with cells 3.2 m long and 1.5 m wide. They only show the
+# application, and are not real sizes.
+
+[types.sample_board]
+kind = "board_stack"
+length_m = 3.0
+width_m = 1.25
+smallest_part_m = 1.0
+count = 30
+thickness_m = 0.019
+
+[types.sample_paper]
+kind = "paper_pallet"
+length_m = 3.0
+width_m = 1.25
+count = 1000
+thickness_m = 0.0003
+base_thickness_m = 0.03
+
+[loads]
+"paper-5610" = [{ type = "paper_pallet" }]
+"board-5600" = [{ type = "particle_board" }]
+"board-2100-3500" = [
+    { type = "particle_board", length_m = 2.1 },
+    { type = "particle_board", length_m = 3.5 },
+]
+"board-3000-2600" = [
+    { type = "particle_board", length_m = 3.0 },
+    { type = "particle_board", length_m = 2.6 },
+]
+"oak-panel-18mm" = [
+    { type = "sample_board", length_m = 1.2 },
+    { type = "sample_board", length_m = 1.8 },
+]
+"paper-a4-80g" = [{ type = "sample_paper" }]

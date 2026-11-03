@@ -12,6 +12,8 @@ from pxr import Gf, Sdf, UsdGeom, UsdLux, Vt
 
 from .core.crane_model import crane_carriage_usda, crane_mast_usda
 from .core.layout import RACK_MEMBER_THICKNESS_M, Bounds, Layout, Vector
+from .core.load_definitions import ShownLoad, ShownUnit
+from .core.load_models import board_stack_usda, paper_pallet_usda
 
 # Kept apart from the crane activity colors below, so that the two are not confused.
 ARTICLE_COLORS = (
@@ -130,10 +132,7 @@ def _generated(
         )
         _box(stage, path, (1.0, 1.0, 1.0), center, box_color, look)
         return
-    layer = Sdf.Layer.CreateAnonymous(".usda")
-    layer.ImportFromString(text)
-    Sdf.CreatePrimInLayer(stage.GetRootLayer(), path)
-    Sdf.CopySpec(layer, "/Look", stage.GetRootLayer(), path)
+    _copy_model(stage, path, text)
     model = UsdGeom.Xform.Define(stage, path)
     model.AddTranslateOp().Set(Gf.Vec3d(*center))
     UsdGeom.PrimvarsAPI(model).CreatePrimvar(
@@ -197,6 +196,82 @@ def create_load_prototypes(stage: Any, instancer_path: str, layout: Layout) -> l
     return paths
 
 
+def _copy_model(stage: Any, path: str, text: str) -> None:
+    """Copies generated text to a path, leaving no trace of a temporary layer in the stage."""
+    layer = Sdf.Layer.CreateAnonymous(".usda")
+    layer.ImportFromString(text)
+    Sdf.CreatePrimInLayer(stage.GetRootLayer(), path)
+    Sdf.CopySpec(layer, "/Look", stage.GetRootLayer(), path)
+
+
+def _usable_file(unit: ShownUnit) -> str | None:
+    file = unit.unit_type.file if unit.unit_type else None
+    if not file:
+        return None
+    try:
+        usable = Sdf.Layer.FindOrOpen(file) is not None
+    except Exception:
+        usable = False
+    if not usable:
+        _warn(f"The file of load unit type {unit.type_name}, {file}, cannot be loaded.")
+    return file if usable else None
+
+
+def _create_unit(
+    stage: Any, path: str, unit: ShownUnit, floor_y: float, fallback_color: Gf.Vec3f
+) -> None:
+    position = Gf.Vec3d(unit.center_x, floor_y, 0.0)
+    kind = unit.unit_type.kind if unit.unit_type else None
+    file = _usable_file(unit)
+    if file:
+        model = UsdGeom.Xform.Define(stage, path)
+        model.GetPrim().GetReferences().AddReference(file)
+    elif kind == "board_stack":
+        _copy_model(stage, path, board_stack_usda(unit.unit_type, unit.length_m))  # type: ignore[arg-type]
+        model = UsdGeom.Xform.Define(stage, path)
+    elif kind == "paper_pallet":
+        _copy_model(stage, path, paper_pallet_usda(unit.unit_type, unit.length_m))  # type: ignore[arg-type]
+        model = UsdGeom.Xform.Define(stage, path)
+    else:
+        center = (unit.center_x, floor_y + unit.height_m / 2, 0.0)
+        _box(stage, path, unit.size, center, fallback_color)
+        return
+    model.AddTranslateOp().Set(position)
+
+
+def create_detailed_load_prototypes(
+    stage: Any, instancer_path: str, layout: Layout, loads: list[ShownLoad]
+) -> list[str]:
+    """Creates a simple shape per article color, and then one prototype per load given.
+
+    An origin is at the center of a cell, as for the simple shape in a cell.
+    """
+    paths = []
+    for index, article_color in enumerate(ARTICLE_COLORS):
+        path = f"{instancer_path}/Load_{index}"
+        _box(stage, path, layout.load_size(), (0.0, 0.0, 0.0), color(article_color))
+        paths.append(path)
+    floor_y = layout.load_base_height() - layout.cell_height / 2
+    for index, load in enumerate(loads, start=len(ARTICLE_COLORS)):
+        path = f"{instancer_path}/Load_{index}"
+        UsdGeom.Xform.Define(stage, path)
+        for number, unit in enumerate(load.units, start=1):
+            _create_unit(stage, f"{path}/Unit{number}", unit, floor_y, color(RACK_COLOR))
+        paths.append(path)
+    return paths
+
+
+def warn_about_load_files(warnings: list[str]) -> None:
+    """Adds warnings about a run's load definitions to the warnings about its looks."""
+    for warning in warnings:
+        _warn(warning)
+
+
+def warn_if_load_look_is_set() -> None:
+    if carb.settings.get_settings().get(LOOK_SETTING + "load_unit"):
+        _warn("The file for load_unit has no effect with detailed models: use load definitions.")
+
+
 def create_rack_prototypes(stage: Any, instancer_path: str, layout: Layout) -> tuple[str, str]:
     """Creates an upright and a beam of a rack, centered on their origins."""
     thickness = RACK_MEMBER_THICKNESS_M
@@ -210,7 +285,7 @@ def create_rack_prototypes(stage: Any, instancer_path: str, layout: Layout) -> t
     return upright, beam
 
 
-def _create_carried_pair(stage: Any, path: str, layout: Layout, prototypes: list[str]) -> None:
+def _create_carried_load(stage: Any, path: str, layout: Layout, prototypes: list[str]) -> None:
     """Creates one instance of a stored load's shape, which moves with the carriage."""
     instancer = UsdGeom.PointInstancer.Define(stage, path)
     targets = instancer.CreatePrototypesRel()
@@ -242,7 +317,7 @@ def create_crane(
         _generated(
             stage, platform, crane_carriage_usda(layout), (0.0, 0.0, 0.0), idle, "crane_carriage"
         )
-        _create_carried_pair(stage, f"{path}/Carriage/CarriedLoad", layout, load_prototypes or [])
+        _create_carried_load(stage, f"{path}/Carriage/CarriedLoad", layout, load_prototypes or [])
         return
     _box(stage, f"{path}/Mast", layout.mast_size(), center, idle, "crane_mast")
     _box(stage, platform, layout.platform_size(), (0.0, 0.0, 0.0), idle, "crane_carriage")

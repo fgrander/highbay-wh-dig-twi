@@ -42,8 +42,8 @@ Checked on recordings of the small sample warehouse in both modes, by `tests/omn
 
 ## Load unit geometry
 
-- **Decision**: Each stack is one mesh. A board stack has one box per board, with every second board set slightly inward so that each is visible. A paper pallet has a wooden pallet of a deck, runners, and a base, with one block of sheets on it. The block has bands, in two materials bound through subsets of its faces. It shows about 20 bands rather than 1000 sheets, and needs no texture file. The forks carry a pallet from below, not through its openings, as the placeholder forks stand under the two halves of a cell.
-- **Rationale**: One mesh per stack is cheap to instance. Bands stay readable from a distance, where 1000 real lines would blur. A shiny material on both bands gives the laminated look. The project owner corrected the load's name from Malette to a pallet with paper on 2026-11-03, before any of this geometry was built. The measurement below had no pallets, so T042 has to confirm its cost.
+- **Decision**: Each stack is one mesh. A board stack has one box per board, with every second board set slightly inward so that each is visible. A paper pallet has one base board of 30 mm, as the project owner stated, with one block of sheets on it. The block has bands, in two materials bound through subsets of its faces. It shows about 20 bands rather than 1000 sheets, and needs no texture file. The forks carry the board from below.
+- **Rationale**: One mesh per stack is cheap to instance. Bands stay readable from a distance, where 1000 real lines would blur. A shiny material on both bands gives the laminated look. The project owner corrected the load's name from Malette to a pallet with paper on 2026-11-03, before any of this geometry was built.
 - **Alternatives considered**: A texture needs a file and has to be scaled per size. One prim per board multiplies the prims per prototype by 30, for no visible difference.
 
 A sample image shows both stacks as readable, with individual boards and bands, at 8 prototypes and with 30 boards in each board stack.
@@ -122,3 +122,8 @@ Across windowless Kit runs with the same settings, the background was either gra
 ## Sharing prototypes between instancers
 
 - **Result**: Each crane's carried load is a `PointInstancer` with one instance, using the prototypes under `/World/Loads`. Kit renders this, as seen in images of a pick and a set on the small sample, and no fallback is needed. Its cost has not been measured separately yet, which the performance tests do.
+
+## Colors of loads
+
+- **Decision**: Boards are darker than first tried, with a linear color of (0.36, 0.22, 0.10), and paper is a slightly cool white.
+- **Rationale**: Under the aisle light, boards with the first color of (0.62, 0.45, 0.27) looked nearly as pale as paper from above. These colors are placeholders, and a definition can set its own.

@@ -1,4 +1,4 @@
-"""Forks and pairs during handling, checked inside Kit (FR-006 to FR-009, SC-002)."""
+"""Forks and loads during handling, checked inside Kit (FR-006 to FR-009, SC-002)."""
 
 import json
 from pathlib import Path
@@ -109,7 +109,7 @@ def test_all_stages_of_both_sections_follow_the_time(
             assert shown[f"{section}/Middle"][2] == pytest.approx(distance / 2, abs=TOLERANCE_M)
 
 
-def test_a_picked_pair_leaves_its_cell_and_returns_on_the_forks(results: dict[str, Any]) -> None:
+def test_a_picked_load_leaves_its_cell_and_returns_on_the_forks(results: dict[str, Any]) -> None:
     for step in results["steps"]:
         if step["kind"] != "pick":
             continue
@@ -121,7 +121,7 @@ def test_a_picked_pair_leaves_its_cell_and_returns_on_the_forks(results: dict[st
             assert step["instance"] in shown["hidden"]
 
 
-def test_a_set_pair_goes_out_and_stays_at_its_cell(results: dict[str, Any]) -> None:
+def test_a_set_load_goes_out_and_stays_at_its_cell(results: dict[str, Any]) -> None:
     for step in results["steps"]:
         if step["kind"] != "set":
             continue

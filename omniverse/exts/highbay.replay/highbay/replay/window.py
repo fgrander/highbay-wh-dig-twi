@@ -10,6 +10,7 @@ from .core.playback import SPEEDS
 from .core.state_source import RunState, WarehouseDescription
 
 ERROR_COLOR = 0xFF4040E0
+WARNING_COLOR = 0xFF40B0E0
 SPEED_LABELS = [f"{speed:,}×" for speed in SPEEDS]  # noqa: RUF001
 ACTIVITY_LABELS = (
     ("moving_empty", "Moving empty"),
@@ -39,12 +40,16 @@ class ReplayWindow:
         self.identification_text: list[str] = []
         self.details_text: list[str] = []
         self.legend_labels: list[str] = []
+        self.warnings_text: list[str] = []
         self.window = ui.Window("Highbay Replay", width=420, height=640)
         with self.window.frame, ui.ScrollingFrame(), ui.VStack(spacing=6):
             with ui.HStack(height=24, spacing=4):
                 self._folder = ui.StringField()
                 ui.Button("Open", width=60, clicked_fn=self._open)
             self._message = ui.Label("", word_wrap=True, height=0, style={"color": ERROR_COLOR})
+            self._warnings = ui.Label(
+                "", word_wrap=True, height=0, visible=False, style={"color": WARNING_COLOR}
+            )
             with ui.HStack(height=24, spacing=4):
                 self._play = ui.Button("Play", clicked_fn=controller.toggle_playing)
                 self._restart = ui.Button("Restart", clicked_fn=controller.restart)
@@ -137,6 +142,11 @@ class ReplayWindow:
 
     def show_message(self, message: str) -> None:
         self._message.text = message
+
+    def show_warnings(self, warnings: list[str]) -> None:
+        self.warnings_text = warnings
+        self._warnings.text = "\n".join(warnings)
+        self._warnings.visible = bool(warnings)
 
     def show_playing(self, playing: bool) -> None:
         self._play.text = "Pause" if playing else "Play"

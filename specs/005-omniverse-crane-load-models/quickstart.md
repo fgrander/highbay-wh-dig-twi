@@ -55,7 +55,7 @@ powershell -ExecutionPolicy Bypass -File omniverse/run-replay.ps1 out/real-size
 
 Zoom in on a cell of each article, and on a crane carrying a load.
 
-- `paper-5610` shows one wooden pallet with paper, as a shiny, banded block, over both fork sections.
+- `paper-5610` shows one base board with paper, as a shiny, banded block, over both fork sections.
 - `board-5600` shows one stack of boards, one by one.
 - `board-2100-3500` and `board-3000-2600` show two parts with a visible cut, in different places, each above its section, in the cell and on the crane.
 - Details of a selected load name its article and its unit or parts.

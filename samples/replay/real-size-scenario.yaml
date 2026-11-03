@@ -1,0 +1,14 @@
+# Sample scenario for the warehouse with real-size cells. Values are illustrative.
+schema_version: 1
+name: real-size-scenario
+seed: 11
+duration_s: 7200
+warmup_s: 600
+generated:
+  orders_per_hour: 40
+  storage_share: 0.5
+  article_weights:
+    paper-5610: 2
+    board-5600: 1
+    board-2100-3500: 1
+    board-3000-2600: 1

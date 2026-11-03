@@ -14,6 +14,7 @@
 
 - Q: What is the second load type? → A: A pallet with paper, not a Malette. The paper is 5.61 m long and 2.08 m wide, and its long side runs along the aisle.
 - Q: How many paper pallets are in a cell? → A: One.
+- Q: What does the paper lie on? → A: On a base board 30 mm thick.
 - Q: What are the particle boards' sizes? → A: At most 5.6 m by 2.07 m. A stack can be split in two, not necessarily in the middle. The smallest part is 1.5 m long, and the parts add up to 5.6 m.
 - This replaces the earlier assumption that each transport carries two load units of any kind side by side. A cell holds a load of either one whole unit, on both fork sections, or two parts of a split board stack, one on each. Paper and boards cannot share a cell, as each of them fills its length.
 
@@ -67,7 +68,7 @@ Each stored or carried load shows what it is: a pallet with paper, a whole stack
 
 1. **Given** a definition of an article, **When** a run with that article is opened, **Then** each of its stored and carried loads shows the unit or the two parts defined.
 2. **Given** a stack split in two parts of different lengths, **When** it is shown in a cell and on a crane, **Then** each part keeps its length and its side, and the cut can be seen.
-3. **Given** the load unit types provided, **When** the planner views them, **Then** a stack of particle boards shows its individual boards, and a paper pallet looks like a wooden pallet with a compact stack of laminated, slightly shiny sheets on it.
+3. **Given** the load unit types provided, **When** the planner views them, **Then** a stack of particle boards shows its individual boards, and a paper pallet looks like a base board with a compact stack of laminated, slightly shiny sheets on it.
 4. **Given** an article with no definition, **When** a run is opened, **Then** its loads show as a simple load unit in its article color, and a warning names the article.
 
 ### Edge Cases
@@ -131,7 +132,7 @@ Each stored or carried load shows what it is: a pallet with paper, a whole stack
 
 - The project owner confirmed that all of a cell's load moves together, in one transport, and that an order always asks for a specific load. A load, whole or split, is therefore one article to the simulation, and throughput counts loads. The project owner confirmed that both parts of a split stack are always stored and retrieved together. Other cases would need a change to the simulation, as a separate feature.
 - The project owner confirmed the crane's form: two columns with the load between them, and two fork sections that can move in both directions across the aisle. Moving them separately is prepared in the model, but no recorded data calls for it.
-- The lengths and widths of paper and boards are real values from the project owner. Heights, the pallet, cell sizes, and crane dimensions are placeholders: for example, particle boards 19 mm thick in a stack of 30, and sheets 0.3 mm thick in a stack of 1000 on a pallet 144 mm high. These real sizes do not fit the existing sample warehouses, whose cells are 3.2 m long and 1.5 m wide, so those samples keep smaller types, and a new sample warehouse has cells for the real sizes.
+- The lengths and widths of paper and boards are real values from the project owner. The base board's 30 mm is real as well. Other heights, cell sizes, and crane dimensions are placeholders: for example, particle boards 19 mm thick in a stack of 30, and sheets 0.3 mm thick in a stack of 1000. These real sizes do not fit the existing sample warehouses, whose cells are 3.2 m long and 1.5 m wide, so those samples keep smaller types, and a new sample warehouse has cells for the real sizes.
 - As the sample warehouses have cells at floor level, everything below a load at the lowest level has to fit in very little height, which makes forks thin. Real dimensions may allow a higher lowest level and stronger forks.
 - Handling times come from the recording. How they divide between extending, lifting, and returning is decided in the plan, for display only.
 - During a handling step, the figures follow the recording. A load can look as if already on the forks while the recording still counts it in its cell until the step's recorded event. This is display only.

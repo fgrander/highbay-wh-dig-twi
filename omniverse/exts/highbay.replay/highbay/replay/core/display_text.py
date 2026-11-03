@@ -1,5 +1,7 @@
 """What the window says about a state and a selection, as in the browser viewer's panels."""
 
+from collections.abc import Callable
+
 from .state_source import (
     CraneState,
     Location,
@@ -10,6 +12,9 @@ from .state_source import (
 )
 
 OCCUPANCY_DECIMALS = 6
+
+# Says what an article's load is, by the index of the article, or None if nothing is defined.
+LoadDescription = Callable[[int], str | None]
 
 
 def _location_text(location: Location) -> str:
@@ -53,7 +58,14 @@ def _crane_destination(crane: CraneState, order: OrderDetails) -> str | None:
     return f"{order.end} end"
 
 
-def crane_details(source: StateSource, state: RunState, aisle: int) -> list[str]:
+def _load_line(describe_load: LoadDescription | None, article: int) -> list[str]:
+    described = describe_load(article) if describe_load else None
+    return [f"Load: {described}"] if described else []
+
+
+def crane_details(
+    source: StateSource, state: RunState, aisle: int, describe_load: LoadDescription | None = None
+) -> list[str]:
     crane = state.cranes[aisle]
     lines = [f"Crane {aisle}", f"Activity: {crane.activity.replace('_', ' ')}"]
     if crane.order is not None:
@@ -66,6 +78,7 @@ def crane_details(source: StateSource, state: RunState, aisle: int) -> list[str]
         load = source.load(crane.carrying)
         if load is not None:
             lines.append(f"Carrying: {source.describe().articles[load.article]}")
+            lines += _load_line(describe_load, load.article)
     return lines
 
 
@@ -79,11 +92,14 @@ def _order_lines(source: StateSource, label: str, index: int) -> list[str]:
     ]
 
 
-def load_details(source: StateSource, key: str) -> list[str]:
+def load_details(
+    source: StateSource, key: str, describe_load: LoadDescription | None = None
+) -> list[str]:
     load = source.load(key)
     if load is None:
         return []
     lines = [f"Load unit: {source.describe().articles[load.article]}"]
+    lines += _load_line(describe_load, load.article)
     if load.store_order is None:
         lines.append("Origin: initial stock")
     else:

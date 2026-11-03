@@ -50,9 +50,9 @@ def overlap(first: Box, second: Box) -> bool:
 
 
 def boxes(
-    extension: float = 0.0, pair_offset: float = 0.0, carrying: bool = False
+    extension: float = 0.0, load_offset: float = 0.0, carrying: bool = False
 ) -> dict[str, Box]:
-    return crane_boxes(SAMPLE, SIZE, 1, (20.0, 0.0), extension, pair_offset, carrying)
+    return crane_boxes(SAMPLE, SIZE, 1, (20.0, 0.0), extension, load_offset, carrying)
 
 
 def test_sizes_follow_the_warehouse() -> None:
@@ -90,8 +90,8 @@ def test_the_boxes_name_the_parts_of_a_crane() -> None:
         "Section1",
         "Section2",
     } <= set(boxes())
-    assert "Pair" not in boxes()
-    assert "Pair" in boxes(carrying=True)
+    assert "Load" not in boxes()
+    assert "Load" in boxes(carrying=True)
 
 
 def test_boxes_stand_at_the_cranes_position() -> None:
@@ -118,31 +118,31 @@ def test_forks_reach_out_as_far_as_they_extend() -> None:
     assert high(out, 2) == pytest.approx(high(rest, 2))  # The base stage stays in the crane.
 
 
-def test_pair_stands_at_its_offset_at_the_height_of_a_stored_one() -> None:
-    pair = boxes(pair_offset=1.5, carrying=True)["Pair"]
+def test_load_stands_at_its_offset_at_the_height_of_a_stored_one() -> None:
+    load = boxes(load_offset=1.5, carrying=True)["Load"]
     stored = SAMPLE.cell_box((1, 2, 7, 1))
-    assert pair.center[2] == pytest.approx(1.5)
-    assert pair.center[1] == pytest.approx(stored.center[1])
-    assert pair.size == pytest.approx(SAMPLE.load_size())
+    assert load.center[2] == pytest.approx(1.5)
+    assert load.center[1] == pytest.approx(stored.center[1])
+    assert load.size == pytest.approx(SAMPLE.load_size())
 
 
 def test_forks_and_load_clear_the_rack_at_the_lowest_level() -> None:
     half = SAMPLE.cell_width / 2
     for extension, rack in ((-SIZE.reach, 1), (SIZE.reach, 2)):
-        found = boxes(extension=extension, pair_offset=extension, carrying=True)
+        found = boxes(extension=extension, load_offset=extension, carrying=True)
         for beam_z in (SAMPLE.rack_z(1, rack) - half, SAMPLE.rack_z(1, rack) + half):
             beam = Box(
                 (20.0, 0.0, beam_z),
                 (SAMPLE.length, RACK_MEMBER_THICKNESS_M, RACK_MEMBER_THICKNESS_M),
             )
-            for name in ("Section1", "Section2", "Pair"):
+            for name in ("Section1", "Section2", "Load"):
                 assert not overlap(found[name], beam), name
 
 
 def test_load_clears_the_floor_tie_and_nothing_moving_sinks_into_it() -> None:
     found = boxes(carrying=True)
     assert high(found["FloorTie"], 1) == pytest.approx(FLOOR_TIE_HEIGHT_M)
-    for name in ("Pair", "Section1", "Section2", "Plate", "EndFrameLeft", "EndFrameRight"):
+    for name in ("Load", "Section1", "Section2", "Plate", "EndFrameLeft", "EndFrameRight"):
         assert low(found[name], 1) >= FLOOR_TIE_HEIGHT_M - 1e-9, name
 
 
@@ -173,3 +173,41 @@ def test_there_is_an_opening_between_the_columns_above_the_carriage() -> None:
         through_center = low(box, 0) < 20.0 < high(box, 0)
         at_height = low(box, 1) < 8.0 < high(box, 1)
         assert not (through_center and at_height)
+
+
+REAL_CELLS = create_layout(
+    {
+        "aisle_count": 1,
+        "racks_per_aisle": 2,
+        "bays_per_rack": 5,
+        "levels_per_rack": 3,
+        "cell": {"height_m": 1.5, "length_m": 5.8, "width_m": 2.3},
+    }
+)
+
+
+def test_sections_stand_under_the_outer_part_of_a_long_load() -> None:
+    assert crane_dimensions(REAL_CELLS).section_x == pytest.approx(2.05)  # 2.9 - 0.85
+
+
+def test_tines_stay_under_every_part_wherever_the_cut_is() -> None:
+    # A load of 5.6 m reaches 2.8 m from the center, and the smallest part is 1.5 m long.
+    boxes = crane_boxes(REAL_CELLS, crane_dimensions(REAL_CELLS), 1, (20.0, 0.0))
+    assert low(boxes["Section2"], 0) - 20.0 >= 2.8 - 1.5
+    assert high(boxes["Section2"], 0) - 20.0 <= 2.8
+    assert 20.0 - high(boxes["Section1"], 0) >= 2.8 - 1.5
+    assert 20.0 - low(boxes["Section1"], 0) <= 2.8
+
+
+def test_a_given_load_size_gives_the_box_of_a_carried_load() -> None:
+    boxes = crane_boxes(
+        REAL_CELLS,
+        crane_dimensions(REAL_CELLS),
+        1,
+        (20.0, 3.0),
+        carrying=True,
+        load_size=(5.61, 0.33, 2.08),
+    )
+    assert boxes["Load"].size == (5.61, 0.33, 2.08)
+    # It starts at the top of the forks, 0.1125 m above the lift position.
+    assert low(boxes["Load"], 1) == pytest.approx(3.1125)

@@ -128,10 +128,10 @@ def test_outline_of_a_crane_surrounds_its_load_space(results: dict[str, Any]) ->
 
 
 def test_parts_without_a_material_show_the_activity(results: dict[str, Any]) -> None:
-    colors = {tuple(pair[0]) for pair in results["colors"].values()}
+    colors = {tuple(load[0]) for load in results["colors"].values()}
     assert len(colors) == 4
-    for pair in results["colors"].values():
-        assert pair[0] == pair[1]
+    for load in results["colors"].values():
+        assert load[0] == load[1]
 
 
 def test_no_warnings_with_generated_models(results: dict[str, Any]) -> None:

@@ -78,7 +78,7 @@ class Layout:
             self.cell_width * LOAD_SIZE_SHARE,
         )
 
-    def pair_base_height(self) -> float:
+    def load_base_height(self) -> float:
         """Returns how far above a cell's floor the load in it starts."""
         return (1 - LOAD_SIZE_SHARE) / 2 * self.cell_height
 

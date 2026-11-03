@@ -4,6 +4,7 @@
 param(
     [string]$RunFolder = "",
     [string]$KitTemplateDir = "C:\dev\omniverse\kit-app-template",
+    [string]$LoadDefinitions = "",
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$KitArguments = @()
 )
@@ -24,6 +25,12 @@ if ($RunFolder) {
     # A missing folder is reported by the application, like any other unusable run folder.
     $Folder = [System.IO.Path]::GetFullPath($RunFolder)
     $Arguments += "--/exts/highbay.replay/run_folder=$Folder"
+}
+
+if ($LoadDefinitions) {
+    # A missing file is reported by the application, as a warning that names it.
+    $Definitions = [System.IO.Path]::GetFullPath($LoadDefinitions)
+    $Arguments += "--/exts/highbay.replay/load_definitions=$Definitions"
 }
 
 & $KitExe @Arguments @KitArguments
