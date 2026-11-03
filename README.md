@@ -2,7 +2,7 @@
 
 A command-line throughput simulation of one high-bay warehouse, written in Python. It runs with no graphical interface. A warehouse and an order scenario are defined in YAML files, and each run writes a report of throughput metrics.
 
-A run can also be replayed in 3D in a web browser, or carried out cycle by cycle by a plant model with a replaceable controller. NVIDIA Omniverse visualization, PLC connections, and live data are planned as later features.
+A run can also be replayed in 3D in a web browser or in NVIDIA Omniverse, or carried out cycle by cycle by a plant model with a replaceable controller. PLC connections and live data are planned as later features.
 
 ## Installation
 
@@ -62,6 +62,50 @@ Crane colors show the current activity, and the side panel shows backlog per ais
 The viewer is automatically tested in Chromium. It needs WebGL 2, and Firefox is expected to work but has not been verified.
 
 Objects are simple shapes for now. To use detailed models, change `src/highbay_sim/viewer/appearance.js`, the only module that decides how objects look. See [the viewer contract](specs/002-3d-run-replay/contracts/viewer.md) for details.
+
+## Omniverse replay
+
+A recorded run from either simulation mode can also be replayed in NVIDIA Omniverse with RTX rendering. It reads the same `replay.json` and changes no files. The simulation and the browser replay work without any of this.
+
+You need Windows and an NVIDIA RTX graphics card. RTX 3070 or better is NVIDIA's recommendation, and this project has been measured on an RTX 3080 with 10 GB. The setup downloads several gigabytes.
+
+Install Omniverse Kit outside the repository, by default in `C:\dev\omniverse\kit-app-template`:
+
+```text
+powershell -ExecutionPolicy Bypass -File omniverse/setup.ps1
+```
+
+Using Kit means accepting the [NVIDIA Software License Agreement](https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-software-license-agreement/) and the Product-Specific Terms for NVIDIA Omniverse. The script never accepts them for you: the first time, it stops and shows the command that asks you. Kit's anonymous data collection is switched off in this project's application.
+
+Open a run:
+
+```text
+uv run highbay-sim run samples/replay/overloaded-warehouse.yaml samples/replay/busy-scenario.yaml --output out/overloaded --replay
+powershell -ExecutionPolicy Bypass -File omniverse/run-replay.ps1 out/overloaded
+```
+
+The first start compiles shaders, which can take several minutes, and later starts take seconds. Close the window to end the application.
+
+The **Highbay Replay** panel beside **Property** has the same controls, figures, and legend as the browser replay. A click in the view selects a crane, or the first load unit along that line, or otherwise a cell, and a click on empty space clears the selection. Kit's own controls move the camera. Kit's selection of objects in the view is switched off.
+
+At 1920×1080 with the whole warehouse in view, and with Kit's frame limiter off, one measurement without a window with all detailed models gave 153 frames per second on the small sample and 20.9 on a warehouse with 100,000 cells, and 24.4 with nearly all of those cells filled. See [the research notes](specs/005-omniverse-crane-load-models/research.md) for the details and limits.
+
+Cranes have two columns with the load between them, and two fork sections that extend during recorded handling. Each cell shows a paper pallet, or a whole or split stack of particle boards, as defined per article in a data file. To see this with the real load sizes:
+
+```text
+uv run highbay-sim run samples/replay/real-size-warehouse.yaml samples/replay/real-size-scenario.yaml --output out/real-size --replay
+powershell -ExecutionPolicy Bypass -File omniverse/run-replay.ps1 out/real-size
+```
+
+To the simulation, a load is always one article and one order, whole or split, so throughput figures count loads. This is why result files keep saying that multi-load handling is not modeled. The cells, crane, and stack heights of that sample are placeholders, so its results say nothing about a real warehouse yet.
+
+| Crane in an aisle | Paper pallet | A split stack of particle boards |
+|---|---|---|
+| ![A crane in an aisle](docs/media/omniverse-loads.jpg) | ![Paper pallet](docs/media/omniverse-paper.jpg) | ![A stack of particle boards with a cut](docs/media/omniverse-split-boards.jpg) |
+
+Videos: [a crane picking a load and traveling along its aisle](docs/media/omniverse-crane-in-aisle.mp4), and [the forks picking a split stack](docs/media/omniverse-split-stack-pick.mp4).
+
+To change sizes, definitions, or models, see [the extension's notes](omniverse/exts/highbay.replay/README.md). To connect another source of run state, such as a later live connection, see [the state interface](specs/004-omniverse-run-replay/contracts/state-interface.md). See also [the application contract](specs/004-omniverse-run-replay/contracts/application.md) and [its changes](specs/005-omniverse-crane-load-models/contracts/application.md).
 
 ## Input files
 
@@ -134,7 +178,21 @@ uv run playwright install chromium
 uv run pytest
 uv run ruff check .
 uv run ruff format --check .
-uv run mypy src
+uv run mypy
+```
+
+Tests that need Omniverse Kit run only on request, as they take minutes and occupy the graphics card. They are skipped if Kit is not installed, and `HIGHBAY_KIT_DIR` can name its folder if it is not in the default place:
+
+```text
+uv run pytest -m omniverse
+```
+
+A `-m` on the command line replaces the default that leaves these tests out, so any other choice should add `and not omniverse`, for example `-m "not performance and not omniverse"`.
+
+The logic in `omniverse/exts/highbay.replay/highbay/replay/core` also has to run in Kit's Python 3.12:
+
+```text
+uv run --isolated --python 3.12 pytest tests/omniverse
 ```
 
 To measure the viewer's frame rate on your graphics hardware, write the planning-target replay and open the printed address with `?benchmark=1`:
