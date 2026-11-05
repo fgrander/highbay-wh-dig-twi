@@ -7,6 +7,7 @@ inputs and software versions give byte-identical files.
 import csv
 import io
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -85,6 +86,7 @@ class Execution:
     controller_name: str
     controller_sha256: str | None
     signal_list_version: int
+    plc: Mapping[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -167,6 +169,8 @@ def result_document(
             }
             for fault in faults
         ]
+        if info.execution.plc is not None:
+            document["plc"] = dict(info.execution.plc)
     return document
 
 
@@ -325,6 +329,7 @@ def _execution_lines(result: dict[str, Any]) -> list[str]:
         f"- Controller: {controller['name']}{hash_text}",
         f"- Signal list version: {execution['signal_list_version']}",
         "",
+        *_plc_lines(result),
         "## Faults",
         "",
     ]
@@ -336,6 +341,31 @@ def _execution_lines(result: dict[str, Any]) -> list[str]:
         f"| {fault['description']} |"
         for fault in result["faults"]
     ]
+    return [*lines, ""]
+
+
+def _plc_lines(result: dict[str, Any]) -> list[str]:
+    plc = result.get("plc")
+    if plc is None:
+        return []
+    lines = [
+        "## PLC",
+        "",
+        "This run is not reproducible, since it depends on a live PLC and on elapsed real time.",
+        "",
+        f"- Device: {plc['device']}",
+        f"- Interface version: {plc['interface_version']}",
+        f"- Stop reason: {plc['stop_reason']}",
+        f"- Cycles: {plc['cycles']}",
+        f"- Overrun cycles: {plc['overrun_cycles']}",
+        f"- Slowest exchange: {plc['slowest_exchange_ms']} ms",
+        f"- Simulated time: {plc['simulated_s']} s",
+        f"- Elapsed real time: {plc['real_s']} s",
+    ]
+    if plc["stopped_at_cycle"] is not None:
+        lines.append(f"- Stopped in cycle: {plc['stopped_at_cycle']}")
+    if plc.get("warmup_skipped"):
+        lines.append("- The run stopped during the warm-up, so the metrics cover all of it.")
     return [*lines, ""]
 
 

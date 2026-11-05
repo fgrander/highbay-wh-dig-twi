@@ -1,0 +1,12 @@
+# Sample scenario for a PLC run: ten minutes of generated orders. Values are illustrative.
+schema_version: 1
+name: plc-scenario
+seed: 42
+duration_s: 600
+warmup_s: 0
+generated:
+  orders_per_hour: 240
+  storage_share: 0.5
+  article_weights:
+    oak-panel-18mm: 3
+    paper-a4-80g: 1

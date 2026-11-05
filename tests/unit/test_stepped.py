@@ -14,11 +14,12 @@ import pytest
 
 from conftest import minimal_warehouse_dict
 from highbay_sim.config import WarehouseDefinition
+from highbay_sim.controller import BuiltInController, ControllerStopped
 from highbay_sim.engine import RunRecord
 from highbay_sim.events import OrderType
 from highbay_sim.orders import ExplicitOrders, GeneratedOrders, OrderRequest
 from highbay_sim.signals import CraneSignals
-from highbay_sim.stepped import simulate_stepped
+from highbay_sim.stepped import ControllerError, simulate_stepped
 
 
 def warehouse() -> WarehouseDefinition:
@@ -276,3 +277,83 @@ def test_a_load_picked_at_another_place_completes_no_order() -> None:
     assert controller.step == 4
     assert "load_picked" not in kinds(record)
     assert record.orders[0].outcome == "unfinished"
+
+
+class StopsAtCycle:
+    """Behaves as the built-in controller, then stops the run or fails in a given cycle."""
+
+    def __init__(self, cycle: int, error: Exception) -> None:
+        self._built_in = BuiltInController()
+        self._cycle = cycle
+        self._error = error
+        self._cycles_seen = 0
+
+    def scan(self, signals: Mapping[int, CraneSignals]) -> None:
+        if self._cycles_seen == self._cycle:
+            raise self._error
+        self._cycles_seen += 1
+        self._built_in.scan(signals)
+
+
+STOPPED = ControllerStopped("connection_lost", "the connection was lost")
+
+
+def stepped_until(cycle: int, error: Exception = STOPPED) -> Any:
+    source = ExplicitOrders(
+        [OrderRequest(0.0, "storage", "A"), OrderRequest(1000.0, "storage", "A")]
+    )
+    controller = StopsAtCycle(cycle, error)
+    return simulate_stepped(warehouse(), source, 1, 3600.0, 100, controller)
+
+
+def test_a_stopped_run_returns_what_was_recorded_with_the_stop() -> None:
+    run = stepped_until(50)
+    assert run.stop.reason == "connection_lost"
+    assert run.stop.message == "the connection was lost"
+    assert run.stop.cycle == 50
+    assert run.stop.time_s == 5.0
+    assert kinds(run.record)[:3] == ["order_arrived", "order_queued", "order_started"]
+
+
+def test_a_stopped_run_lasts_as_long_as_was_simulated() -> None:
+    assert stepped_until(50).record.duration_s == 5.0
+
+
+def test_a_stop_in_the_first_cycle_lasts_one_cycle_so_that_metrics_can_be_calculated() -> None:
+    assert stepped_until(0).record.duration_s == 0.1
+
+
+def test_orders_that_would_arrive_after_the_stop_are_not_added() -> None:
+    assert len(stepped_until(50).record.orders) == 1
+
+
+def test_an_order_in_progress_at_the_stop_is_unfinished() -> None:
+    order = stepped_until(50).record.orders[0]
+    assert order.outcome == "unfinished"
+    assert order.reason == "run_ended"
+
+
+def test_the_plant_does_not_advance_after_the_stop() -> None:
+    cycles: list[int] = []
+    source = ExplicitOrders([OrderRequest(0.0, "storage", "A")])
+    controller = StopsAtCycle(3, STOPPED)
+    simulate_stepped(
+        warehouse(),
+        source,
+        1,
+        3600.0,
+        100,
+        controller,
+        on_cycle=lambda cycle, time_s: cycles.append(cycle),
+    )
+    assert cycles == [0, 1, 2]
+
+
+def test_any_other_exception_still_raises_a_controller_error() -> None:
+    with pytest.raises(ControllerError, match="cycle 5"):
+        stepped_until(5, ValueError("broken"))
+
+
+def test_a_run_with_no_stop_has_empty_stop_information() -> None:
+    source = ExplicitOrders([OrderRequest(0.0, "storage", "A")])
+    assert simulate_stepped(warehouse(), source, 1, 100.0, 100).stop is None
