@@ -103,6 +103,8 @@ To the simulation, a load is always one article and one order, whole or split, s
 |---|---|---|
 | ![A crane in an aisle](docs/media/omniverse-loads.jpg) | ![Paper pallet](docs/media/omniverse-paper.jpg) | ![A stack of particle boards with a cut](docs/media/omniverse-split-boards.jpg) |
 
+![A camera moving across five aisles from above, replayed in Omniverse](docs/media/omniverse-five-aisles.webp)
+
 Videos: [a crane picking a load and traveling along its aisle](docs/media/omniverse-crane-in-aisle.mp4), [the forks picking a split stack](docs/media/omniverse-split-stack-pick.mp4), [a camera following a crane](docs/media/omniverse-crane-follow.mp4), [a crane coming towards the far aisle end](docs/media/omniverse-crane-head-on.mp4), [an overview of the warehouse](docs/media/omniverse-overview.mp4), and [a camera moving across five aisles from above](docs/media/omniverse-five-aisles.mp4). The five-aisle video uses the real-size sample with five aisles, stock in each, and random storage, which is not one of the samples.
 
 To change sizes, definitions, or models, see [the extension's notes](omniverse/exts/highbay.replay/README.md). To connect another source of run state, such as a later live connection, see [the state interface](specs/004-omniverse-run-replay/contracts/state-interface.md). See also [the application contract](specs/004-omniverse-run-replay/contracts/application.md) and [its changes](specs/005-omniverse-crane-load-models/contracts/application.md).
