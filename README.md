@@ -168,6 +168,24 @@ A controller is a class that needs no arguments to create, and has a method `sca
 
 No PLC can be connected yet: this feature prepares that connection. The plant model is ideal: drives have no position error, and safety functions are not modeled.
 
+## PLC runs
+
+A simulated Siemens S7-1500 CPU in S7-PLCSIM Advanced can be the controller of a time-stepped run. The PLC runs the crane control program, and the model is the plant. The steps are in [the quickstart](specs/006-plc-virtual-commissioning/quickstart.md).
+
+```text
+uv run highbay-sim plc-source samples/small-warehouse.yaml --output out/plc-source
+uv sync --extra plc
+uv run highbay-sim plc-measure samples/small-warehouse.yaml --plc-host ADDRESS
+uv run highbay-sim run samples/small-warehouse.yaml samples/plc-scenario.yaml --output out/plc --time-stepped --plc-host ADDRESS
+```
+
+`plc-source` writes source files to import into TIA Portal. `plc-measure` shows how fast signals can be exchanged. A run takes as long in real time as it simulates, and its report states that it is not reproducible.
+
+- **Not yet proven**: This has not been run on S7-PLCSIM Advanced. The automated tests use a stand-in for the PLC, so they show neither that the connection works with a real instance, nor that the generated files compile, nor that the SCL behaves as the stand-in does.
+- **Simulated PLCs only**: Before its first write, a run reads the device's identity, and refuses anything that is not confirmed as simulated. No option turns this off. It guards against mistakes, not against a device that lies about itself.
+- **Not safety-rated**: The generated program is a starting point for commissioning. Do not use it on real equipment.
+- **Connection library**: It uses `s7commplus`, which is young and unofficial. A password comes only from the environment variable `HIGHBAY_PLC_PASSWORD`.
+
 ## Development
 
 Viewer tests run in a headless browser, which needs to be downloaded once:

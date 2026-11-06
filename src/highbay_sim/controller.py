@@ -22,6 +22,15 @@ class ControllerLoadError(Exception):
     pass
 
 
+class ControllerStopped(Exception):
+    """A controller ends a run early, and what was recorded so far is kept."""
+
+    def __init__(self, reason: str, message: str) -> None:
+        super().__init__(message)
+        self.reason = reason
+        self.message = message
+
+
 def load_controller(specification: str) -> tuple[Controller, str, str]:
     """Load `FILE.py:CLASS`, and return the controller, its name, and the file's SHA-256."""
     file_text, separator, class_name = specification.rpartition(":")

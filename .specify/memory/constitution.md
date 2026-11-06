@@ -15,6 +15,8 @@ Rationale: throughput results must not depend on rendering, and each part must b
 Identical warehouse layout, parameters, input data, random seed, and software version MUST produce
 identical results. Simulation time MUST be independent of rendering frame rate and wall-clock time.
 All sources of randomness MUST be seeded and the seed MUST be recorded with each run.
+A run coupled to a live simulated PLC is exempt from this principle, because it follows real time.
+Its report MUST state that it is not reproducible.
 
 Rationale: scenarios can only be compared, and defects only reproduced, if runs are repeatable.
 
@@ -32,11 +34,14 @@ Rationale: a simulation only supports decisions when its numbers can be explaine
 The system MUST be fully usable without any connection to a real warehouse system. All data MUST
 enter through a defined data source interface so that a live source can be added later without
 changing simulation or visualization logic. Live integration MUST NOT be built until a feature spec
-calls for it. Live connections MUST be read-only towards real warehouse systems; any write path
-requires a constitution amendment.
+calls for it. Live connections MUST be read-only towards real warehouse systems and real PLCs.
+Writing is allowed only to a simulated PLC, whose identity MUST be confirmed before the first write.
+Any device that cannot be confirmed as simulated MUST be refused. Any other write path requires a
+constitution amendment.
 
 Rationale: this keeps the live option open at low cost, and the twin must never be able to affect
-real warehouse equipment by accident.
+real warehouse equipment by accident. Virtual commissioning needs a PLC that reads the plant's status
+from the model, so writing to a simulated PLC is allowed, while a real PLC stays out of reach.
 
 ### V. Test-First Simulation Logic
 
@@ -82,4 +87,4 @@ PATCH for clarifications and wording fixes.
 
 Compliance is verified in each implementation plan's constitution check and before merging a feature.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-01 | **Last Amended**: 2026-11-01
+**Version**: 1.1.0 | **Ratified**: 2026-11-01 | **Last Amended**: 2026-11-05

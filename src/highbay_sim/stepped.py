@@ -9,7 +9,7 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 
 from highbay_sim.config import WarehouseDefinition
-from highbay_sim.controller import BuiltInController, Controller
+from highbay_sim.controller import BuiltInController, Controller, ControllerStopped
 from highbay_sim.engine import RunRecord
 from highbay_sim.events import Activity, EventKind, Location, Position, SimulationEvent
 from highbay_sim.order_handling import OrderHandling, OrderRecord
@@ -28,9 +28,20 @@ class ControllerError(Exception):
 
 
 @dataclass(frozen=True)
+class RunStop:
+    """Why and when a controller ended a run early."""
+
+    reason: str
+    message: str
+    cycle: int
+    time_s: float
+
+
+@dataclass(frozen=True)
 class SteppedRun:
     record: RunRecord
     faults: tuple[Fault, ...]
+    stop: RunStop | None = None
 
 
 @dataclass
@@ -101,30 +112,40 @@ class _Run:
 
     def execute(self) -> SteppedRun:
         last_cycle = math.floor(self._duration_s * 1000 / self._cycle_ms + ROUNDING_MARGIN)
+        stop: RunStop | None = None
         for cycle in range(last_cycle + 1):
             self._now = cycle * self._cycle_ms / 1000
             self._handle_orders()
             try:
                 self._controller.scan(self.signals)
+            except ControllerStopped as stopped:
+                stop = RunStop(stopped.reason, stopped.message, cycle, self._now)
+                break
             except Exception as error:
                 raise ControllerError(f"the controller failed in cycle {cycle}: {error}") from error
             if self._on_cycle is not None:
                 self._on_cycle(cycle, cycle * self._cycle_ms / 1000)
             if cycle < last_cycle:
                 self._plant.advance(cycle)
-        self._process_last_arrivals()
+        if stop is None:
+            self._process_last_arrivals()
         self._handling.set_final_reasons()
         return SteppedRun(
             RunRecord(
                 events=tuple(self._events),
                 orders=tuple(self._handling.orders),
-                duration_s=self._duration_s,
+                duration_s=self._duration_s if stop is None else self._stopped_duration(stop),
                 cell_count=self._handling.allocation.cell_count,
                 crane_count=len(self.signals),
                 initial_occupied=self._handling.allocation.initial_occupied,
             ),
             tuple(self._plant.faults),
+            stop,
         )
+
+    def _stopped_duration(self, stop: RunStop) -> float:
+        # A stop in the first cycle still counts as one cycle, as metrics need a time window.
+        return max(stop.time_s, self._cycle_ms / 1000)
 
     def _handle_orders(self) -> None:
         for aisle, job in list(self._jobs.items()):

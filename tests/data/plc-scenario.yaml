@@ -1,0 +1,9 @@
+# A short scenario for tests with a PLC, for samples/verification/v1-warehouse.yaml.
+schema_version: 1
+name: plc-test
+seed: 1
+duration_s: 120
+warmup_s: 0
+orders:
+  - { time_s: 0, type: storage, article: A }
+  - { time_s: 30, type: retrieval, article: A }
